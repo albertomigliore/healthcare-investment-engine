@@ -147,6 +147,22 @@ window.APP_DATA = {
    "basis": "as of 05 Nov 2026"
   }
  ],
+ "benchmarks": [
+  {
+   "ticker": "SPY",
+   "name": "S&P 500",
+   "annual_return": 0.205,
+   "volatility": 0.1542,
+   "sharpe": 1.049
+  },
+  {
+   "ticker": "IHI",
+   "name": "Device sector (IHI)",
+   "annual_return": 0.074,
+   "volatility": 0.1872,
+   "sharpe": 0.1641
+  }
+ ],
  "companies": [
   {
    "ticker": "GMED",
@@ -218,7 +234,9 @@ window.APP_DATA = {
    "price": 71.05,
    "market_cap_bn": 9.6,
    "fiscal_year_end": "2025-12-31",
-   "sharpe": 0.25686263902968665,
+   "sharpe": 0.2569,
+   "annual_return": 0.1517,
+   "volatility": 0.4219,
    "finalist": true,
    "flags": [
     "revenue_cagr = 0.422 (expected -0.1 to 0.3)"
@@ -294,7 +312,9 @@ window.APP_DATA = {
    "price": 79.41,
    "market_cap_bn": 30.6,
    "fiscal_year_end": "2025-12-31",
-   "sharpe": -0.21628790344226953,
+   "sharpe": -0.2163,
+   "annual_return": -0.0575,
+   "volatility": 0.4658,
    "finalist": true,
    "flags": []
   },
@@ -368,7 +388,9 @@ window.APP_DATA = {
    "price": 235.3,
    "market_cap_bn": 33.9,
    "fiscal_year_end": "2026-06-30",
-   "sharpe": 0.37610749613691147,
+   "sharpe": 0.3761,
+   "annual_return": 0.1634,
+   "volatility": 0.3194,
    "finalist": true,
    "flags": []
   },
@@ -442,7 +464,9 @@ window.APP_DATA = {
    "price": 105.59,
    "market_cap_bn": 20.6,
    "fiscal_year_end": "2025-12-31",
-   "sharpe": -0.15961161891613776,
+   "sharpe": -0.1596,
+   "annual_return": -0.002,
+   "volatility": 0.284,
    "finalist": false,
    "flags": []
   },
@@ -516,7 +540,9 @@ window.APP_DATA = {
    "price": 42.75,
    "market_cap_bn": 63.4,
    "fiscal_year_end": "2025-12-31",
-   "sharpe": -0.38902139315102896,
+   "sharpe": -0.389,
+   "annual_return": -0.068,
+   "volatility": 0.2861,
    "finalist": false,
    "flags": []
   },
@@ -590,7 +616,9 @@ window.APP_DATA = {
    "price": 452.8,
    "market_cap_bn": 160.8,
    "fiscal_year_end": "2025-12-31",
-   "sharpe": 0.40586355611123404,
+   "sharpe": 0.4059,
+   "annual_return": 0.1776,
+   "volatility": 0.3309,
    "finalist": false,
    "flags": [
     "total_debt 2025: filled with 0 from ISRG 10-K FY2025 (accession 0001035267-26-000010)"
@@ -666,7 +694,9 @@ window.APP_DATA = {
    "price": 102.14,
    "market_cap_bn": 59.3,
    "fiscal_year_end": "2025-12-31",
-   "sharpe": 0.34020794126561815,
+   "sharpe": 0.3402,
+   "annual_return": 0.1503,
+   "volatility": 0.3146,
    "finalist": false,
    "flags": []
   },
@@ -740,7 +770,9 @@ window.APP_DATA = {
    "price": 146.51,
    "market_cap_bn": 10.3,
    "fiscal_year_end": "2025-12-31",
-   "sharpe": -0.17155757922978024,
+   "sharpe": -0.1716,
+   "annual_return": -0.0267,
+   "volatility": 0.4081,
    "finalist": false,
    "flags": [
     "operating_income_cagr = 1.327 (expected -0.25 to 0.5)"
@@ -816,7 +848,9 @@ window.APP_DATA = {
    "price": 252.3,
    "market_cap_bn": 24.7,
    "fiscal_year_end": "2026-03-31",
-   "sharpe": 0.07261360889642189,
+   "sharpe": 0.0726,
+   "annual_return": 0.0606,
+   "volatility": 0.239,
    "finalist": false,
    "flags": [
     "depreciation_amortisation: used fallback label 'Depreciation Amortization Depletion'"
@@ -892,7 +926,9 @@ window.APP_DATA = {
    "price": 325.87,
    "market_cap_bn": 124.6,
    "fiscal_year_end": "2025-12-31",
-   "sharpe": 0.09165433543941034,
+   "sharpe": 0.0917,
+   "annual_return": 0.0663,
+   "volatility": 0.2512,
    "finalist": false,
    "flags": []
   },
@@ -966,7 +1002,9 @@ window.APP_DATA = {
    "price": 101.8,
    "market_cap_bn": 130.3,
    "fiscal_year_end": "2026-04-30",
-   "sharpe": 0.49597697283605124,
+   "sharpe": 0.496,
+   "annual_return": 0.1522,
+   "volatility": 0.2196,
    "finalist": false,
    "flags": []
   },
@@ -1040,7 +1078,9 @@ window.APP_DATA = {
    "price": 211.88,
    "market_cap_bn": 60.5,
    "fiscal_year_end": "2025-09-30",
-   "sharpe": -0.034949637696155555,
+   "sharpe": -0.0349,
+   "annual_return": 0.0342,
+   "volatility": 0.2592,
    "finalist": false,
    "flags": [
     "Biosciences & Diagnostic Solutions combined with Waters (Reverse Morris Trust; BD received $4bn cash)"
@@ -1116,7 +1156,9 @@ window.APP_DATA = {
    "price": 166.0,
    "market_cap_bn": 11.8,
    "fiscal_year_end": "2025-12-31",
-   "sharpe": -0.224746462920862,
+   "sharpe": -0.2247,
+   "annual_return": -0.0567,
+   "volatility": 0.4448,
    "finalist": false,
    "flags": []
   },
@@ -1190,7 +1232,9 @@ window.APP_DATA = {
    "price": 82.38,
    "market_cap_bn": 37.5,
    "fiscal_year_end": "2025-12-31",
-   "sharpe": 0.02648421252427272,
+   "sharpe": 0.0265,
+   "annual_return": 0.0522,
+   "volatility": 0.3368,
    "finalist": false,
    "flags": []
   },
@@ -1264,7 +1308,9 @@ window.APP_DATA = {
    "price": 109.93,
    "market_cap_bn": 190.9,
    "fiscal_year_end": "2025-12-31",
-   "sharpe": 0.12525726217427707,
+   "sharpe": 0.1253,
+   "annual_return": 0.0722,
+   "volatility": 0.2305,
    "finalist": false,
    "flags": []
   },
@@ -1338,7 +1384,9 @@ window.APP_DATA = {
    "price": 62.36,
    "market_cap_bn": 12.2,
    "fiscal_year_end": "2025-10-31",
-   "sharpe": -0.4338486769747073,
+   "sharpe": -0.4338,
+   "annual_return": -0.0932,
+   "volatility": 0.3145,
    "finalist": false,
    "flags": []
   },
@@ -1412,7 +1460,9 @@ window.APP_DATA = {
    "price": 150.87,
    "market_cap_bn": 6.7,
    "fiscal_year_end": "2025-12-31",
-   "sharpe": -0.4017156458621826,
+   "sharpe": -0.4017,
+   "annual_return": -0.1005,
+   "volatility": 0.358,
    "finalist": false,
    "flags": [
     "growth measured over 2 years (2023-2025): later years were restated after a divestiture, but 2022 was never restated, so it is not like-for-like",

@@ -86,6 +86,7 @@ def main() -> None:
     assumptions = pd.read_csv(settings.MANUAL_DIR / "valuation_assumptions.csv", index_col=0)
     sector_of = {t: g for g, ts in settings.UNIVERSE.items() for t in ts}
     finalists = pd.read_csv(T / "finalists.csv", index_col=0).index.tolist()
+    risk_return = pd.read_csv(T / "risk_return.csv", index_col=0)      # from Session 4
 
     companies = []
     for t in ranking.index:
@@ -97,7 +98,8 @@ def main() -> None:
             "metrics": {k: {"value": m[k], "pct": r[f"pct_{k}"]} for k in settings.METRICS},
             "p_top3": robust.loc[t, "p_top"], "rank_p5": robust.loc[t, "rank_p5"], "rank_p95": robust.loc[t, "rank_p95"],
             "price": m["price"], "market_cap_bn": m["market_cap_bn"], "fiscal_year_end": m["fiscal_year_end"],
-            "sharpe": m["sharpe"], "finalist": t in finalists,
+            "sharpe": risk_return.loc[t, "sharpe"], "annual_return": risk_return.loc[t, "annual_return"],
+            "volatility": risk_return.loc[t, "volatility"], "finalist": t in finalists,
             "flags": flags.loc[flags["ticker"] == t, "detail"].tolist(),
         })
 
@@ -135,6 +137,8 @@ def main() -> None:
                      "terminal_growth": settings.TERMINAL_GROWTH, "years": settings.FORECAST_YEARS,
                      "n_sims": settings.N_SIMULATIONS, "weight_spread": settings.WEIGHT_SPREAD},
         "rates": rates.to_dict(orient="records"),
+        "benchmarks": [{"ticker": t, "name": n, **risk_return.loc[t, ["annual_return", "volatility", "sharpe"]].to_dict()}
+                       for t, n in [(settings.MARKET_BENCHMARK, "S&P 500"), (settings.SECTOR_BENCHMARK, "Device sector (IHI)")]],
         "companies": companies, "excluded": excluded, "finalists": finalists, "valuations": valuations,
     }
     APP_DIR.mkdir(exist_ok=True)

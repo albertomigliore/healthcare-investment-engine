@@ -212,6 +212,15 @@ footer { border-top: 1px solid var(--border); padding: 28px 0 56px; color: var(-
     <div class="box"><svg class="chart" id="robust" viewBox="0 0 760 470" role="img" aria-label="Range of ranks across 10,000 weightings"></svg></div>
     <figcaption><b>Figure 1.</b> Rank under the chosen weights (dot) and the 5th–95th percentile range of ranks across 10,000 random weightings (line). The shaded band marks the top three. Globus Medical and ResMed are in the top three in 100% of runs and DexCom in 95%; no other company exceeds 5%.</figcaption>
   </figure>
+  <div class="prose">
+    <h3>Risk and risk-adjusted return</h3>
+    <p><b>Volatility</b> measures how much a share price swings: the standard deviation of daily returns, scaled to a year (multiplied by √252). <b>The Sharpe ratio</b> measures how much return a share delivered for each unit of that risk: its yearly return minus the risk-free rate (the average 3-month Treasury bill, about 4.3%), divided by its volatility. A Sharpe ratio below zero means the share did worse than a risk-free deposit over the period.</p>
+    <p>Volatility is one of the 12 scored metrics (Risk group); the Sharpe ratio is reported but not scored, because it mixes return and risk, which the screen already measures separately. Over these three years no device company came close to the S&amp;P 500's risk-adjusted return. The sector as a whole lagged the market: $100 invested in the device-sector fund became about $124, against about $175 in the S&amp;P 500.</p>
+  </div>
+  <figure>
+    <div class="box"><svg class="chart" id="volsharpe" viewBox="0 0 760 520" role="img" aria-label="Volatility and Sharpe ratio for each company"></svg></div>
+    <figcaption id="volsharpe-cap"></figcaption>
+  </figure>
 </section>
 
 <section id="valuation">
@@ -244,12 +253,12 @@ footer { border-top: 1px solid var(--border); padding: 28px 0 56px; color: var(-
         <div class="stat"><div class="k">Decision</div><div class="v" id="s-dec">–</div><div class="s" id="s-n">&nbsp;</div></div>
       </div>
       <svg class="chart" id="hist" viewBox="0 0 720 260" role="img" aria-label="Histogram of simulated values per share"></svg>
-      <div class="cap"><b>Figure 3.</b> Distribution of simulated values per share. Runs above the share price (dashed line) are shown in blue; the solid line is the median.</div>
+      <div class="cap"><b>Figure 4.</b> Distribution of simulated values per share. Runs above the share price (dashed line) are shown in blue; the solid line is the median.</div>
       <div class="twocol" style="margin-top:20px">
         <div><svg class="chart" id="conv" viewBox="0 0 360 170"></svg>
-          <div class="cap"><b>Figure 4.</b> Estimated probability that the value exceeds the price, as runs accumulate. The shaded band is the 95% sampling interval, which narrows in proportion to 1/√n.</div></div>
+          <div class="cap"><b>Figure 5.</b> Estimated probability that the value exceeds the price, as runs accumulate. The shaded band is the 95% sampling interval, which narrows in proportion to 1/√n.</div></div>
         <div><svg class="chart" id="tornado" viewBox="0 0 360 170"></svg>
-          <div class="cap"><b>Figure 5.</b> Value per share with each assumption at the low and high end of its range and the others at the base case.</div></div>
+          <div class="cap"><b>Figure 6.</b> Value per share with each assumption at the low and high end of its range and the others at the base case.</div></div>
       </div>
       <div class="explain" id="explain"></div>
       <div class="runs" id="runs"></div>
@@ -359,7 +368,7 @@ function toggleRow(t, force) {
       return `<div class="m"><span class="muted">${esc(s.name)}</span> <span class="ash">· ${s.group}</span><b class="num">${fmtMetric(k, m.value)}</b>
         <div class="bar"><i style="width:${m.pct}%"></i></div><span class="ash">Percentile ${m.pct.toFixed(0)}; ${s.higher_is_better ? "higher" : "lower"} is better.</span> <span class="muted">${esc(s.help)}</span></div>`;
     }).join("");
-    d.firstElementChild.innerHTML = `<div><span class="muted">${esc(c.sector)}.</span> ${esc(c.what)} <span class="muted">Price ${usd(c.price)}; market value $${c.market_cap_bn.toFixed(1)}bn; latest annual report ${c.fiscal_year_end}. Across 10,000 weightings its rank ranges from ${c.rank_p5.toFixed(0)} to ${c.rank_p95.toFixed(0)} (5th–95th percentile).</span></div>
+    d.firstElementChild.innerHTML = `<div><span class="muted">${esc(c.sector)}.</span> ${esc(c.what)} <span class="muted">Price ${usd(c.price)}; market value $${c.market_cap_bn.toFixed(1)}bn; latest annual report ${c.fiscal_year_end}; 3-year return ${pct(c.annual_return)} a year, volatility ${pct(c.volatility, 0)}, Sharpe ratio ${c.sharpe.toFixed(2)}. Across 10,000 weightings its rank ranges from ${c.rank_p5.toFixed(0)} to ${c.rank_p95.toFixed(0)} (5th–95th percentile).</span></div>
       <div class="mgrid">${cells}</div>
       ${c.flags.length ? `<div class="muted" style="margin-top:12px"><b style="color:#0c0a09;font-weight:500">Data notes:</b> ${c.flags.map(esc).join("; ")}.</div>` : ""}`;
   }
@@ -381,6 +390,39 @@ function renderRobustness() {
       <text x="${W - 4}" y="${y + 4}" text-anchor="end">${pct(c.p_top3, 0)}</text>`;
   });
   $("#robust").innerHTML = s;
+}
+
+
+function renderVolSharpe() {
+  const cs = [...APP.companies].sort((a, b) => b.sharpe - a.sharpe);
+  const bm = Object.fromEntries(APP.benchmarks.map(b => [b.ticker, b]));
+  const W = 760, rowH = 25, t = 74, n = cs.length, Hh = t + n * rowH + 40;
+  const lab = 150, l1 = lab, r1 = 425, l2 = 470, r2 = W - 10;
+  const vmax = Math.max(...cs.map(c => c.volatility)) * 1.15;
+  const smin = Math.min(...cs.map(c => c.sharpe)) - 0.15, smax = Math.max(bm.SPY.sharpe, ...cs.map(c => c.sharpe)) + 0.2;
+  const xv = v => l1 + v / vmax * (r1 - l1), xs = s => l2 + (s - smin) / (smax - smin) * (r2 - l2);
+  $("#volsharpe").setAttribute("viewBox", `0 0 ${W} ${Hh}`);
+  let s = `<text class="ink" x="${l1}" y="12">Volatility (yearly)</text><text class="ink" x="${l2}" y="12">Sharpe ratio</text>`;
+  [0, .1, .2, .3, .4].filter(v => v <= vmax).forEach(v => { s += `<line x1="${xv(v)}" x2="${xv(v)}" y1="${t - 12}" y2="${t + n * rowH - 8}" stroke="#f0efee"/><text x="${xv(v)}" y="${t + n * rowH + 8}" text-anchor="middle">${pct(v, 0)}</text>`; });
+  niceTicks(smin, smax, 5).forEach(v => { s += `<line x1="${xs(v)}" x2="${xs(v)}" y1="${t - 12}" y2="${t + n * rowH - 8}" stroke="${Math.abs(v) < 1e-9 ? "#a8a29e" : "#f0efee"}"/><text x="${xs(v)}" y="${t + n * rowH + 8}" text-anchor="middle">${v.toFixed(2)}</text>`; });
+  cs.forEach((c, i) => {
+    const y = t + i * rowH, col = c.finalist ? "#3ba6f1" : "#d6d3d1", x0 = xs(0), x1 = xs(c.sharpe);
+    s += `<text x="0" y="${y + 4}" class="${c.finalist ? "ink" : ""}">${esc(c.name)}</text>
+      <rect x="${l1}" y="${y - 8}" width="${xv(c.volatility) - l1}" height="16" rx="2" fill="${col}"/>
+      <text x="${xv(c.volatility) + 4}" y="${y + 4}">${pct(c.volatility, 0)}</text>
+      <rect x="${Math.min(x0, x1)}" y="${y - 8}" width="${Math.max(1, Math.abs(x1 - x0))}" height="16" rx="2" fill="${col}"/>
+      <text x="${c.sharpe >= 0 ? x1 + 4 : x1 - 4}" y="${y + 4}" text-anchor="${c.sharpe >= 0 ? "start" : "end"}">${c.sharpe.toFixed(2)}</text>`;
+  });
+  [["SPY", "4 3", 0], ["IHI", "1 2", 1]].forEach(([k, dash, j]) => {
+    const b = bm[k], yl = t - 34 + j * 13, name = k === "SPY" ? "S&P 500" : "Device sector";
+    s += `<line x1="${xv(b.volatility)}" x2="${xv(b.volatility)}" y1="${yl + 2}" y2="${t + n * rowH - 8}" stroke="#0c0a09" stroke-dasharray="${dash}"/>
+      <text x="${xv(b.volatility) + 3}" y="${yl}">${name} ${pct(b.volatility, 0)}</text>
+      <line x1="${xs(b.sharpe)}" x2="${xs(b.sharpe)}" y1="${yl + 2}" y2="${t + n * rowH - 8}" stroke="#0c0a09" stroke-dasharray="${dash}"/>
+      <text x="${xs(b.sharpe) + 3}" y="${yl}" text-anchor="${xs(b.sharpe) > W - 120 ? "end" : "start"}">${name} ${b.sharpe.toFixed(2)}</text>`;
+  });
+  $("#volsharpe").innerHTML = s;
+  const best = cs[0], neg = cs.filter(c => c.sharpe < 0).length;
+  $("#volsharpe-cap").innerHTML = `<b>Figure 2.</b> Volatility and Sharpe ratio over three years (November 2023 to November 2026), ordered by Sharpe ratio; finalists in blue. Dashed lines mark the S&amp;P 500 (Sharpe ${bm.SPY.sharpe.toFixed(2)}) and the device-sector fund (${bm.IHI.sharpe.toFixed(2)}). The best device company, ${esc(best.name)}, reached ${best.sharpe.toFixed(2)}; ${neg} of the 17 had a negative Sharpe ratio, i.e. returned less than a risk-free deposit.`;
 }
 
 // ---------------------------------------------------------------- valuation (fixed model results)
@@ -426,7 +468,7 @@ function renderValuation(t) {
   $("#val-panel").innerHTML = `
     <div class="prose"><h3 style="margin-top:4px">${esc(c.name)}</h3><p>${esc(c.what)} ${esc(v.reasoning)} <a href="${esc(v.source)}" target="_blank" rel="noopener">Source</a>.</p></div>
     <figure><div class="box"><svg class="chart" viewBox="0 0 760 232" role="img" aria-label="Value per share by method">${football(t, compsValues(t))}</svg></div>
-      <figcaption><b>Figure 2.</b> ${esc(c.name)}: value per share by method, compared with the price of ${usd(v.price)} (dashed). Comparables show the 25th–75th percentile of peers; the DCF bar spans the bear and bull cases; the Monte Carlo bar spans the 10th–90th percentile of 10,000 runs. Ticks mark the median or base case.</figcaption></figure>
+      <figcaption><b>Figure 3.</b> ${esc(c.name)}: value per share by method, compared with the price of ${usd(v.price)} (dashed). Comparables show the 25th–75th percentile of peers; the DCF bar spans the bear and bull cases; the Monte Carlo bar spans the 10th–90th percentile of 10,000 runs. Ticks mark the median or base case.</figcaption></figure>
     <div class="twocol">
       <figure style="margin-top:0"><div class="box"><dl class="kv">${inputs.map(([label, k]) => `<dt>${label}</dt><dd>${esc(String(r[k]).split(" (")[0])}</dd>`).join("")}</dl></div>
         <figcaption><b>Table 4.</b> Main DCF inputs. Full workings in outputs/tables/valuation_${t}.md.</figcaption></figure>
@@ -675,7 +717,7 @@ function drawFinal(t, res) {
     : `With ${int(res.nFinite)} runs the probability is estimated to within ±${pct(1.96 * se, 1)} at 95% confidence.`;
   const topName = top.name === "WACC" ? "the WACC" : top.name.toLowerCase();
   $("#explain").innerHTML = `<p>In ${pct(res.pAbove, 0)} of the ${int(res.n)} runs, ${esc(c.name)}'s value per share exceeds the price of ${usd(v.price)}. The median value is ${usd(res.median)}, ${spct(res.median / v.price - 1)} relative to the price, and 80% of values lie between ${usd(res.p10, 0)} and ${usd(res.p90, 0)}. Under the decision rule the result is <b>${res.decision}</b>, because ${why}.</p>
-    <p style="margin-bottom:0">The value is most sensitive to ${topName}: across its range (${top.range}) the value per share moves from ${usd(Math.min(top.lo, top.hi), 0)} to ${usd(Math.max(top.lo, top.hi), 0)} (Figure 5). ${precision}
+    <p style="margin-bottom:0">The value is most sensitive to ${topName}: across its range (${top.range}) the value per share moves from ${usd(Math.min(top.lo, top.hi), 0)} to ${usd(Math.max(top.lo, top.hi), 0)} (Figure 6). ${precision}
     ${changed.length ? `<br><span class="muted">Settings changed from the model: ${changed.join(", ")}. With the model's own settings the decision is ${v.python.decision}.</span>` : `<br><span class="muted">These are the model's own settings; the Python pipeline gives the same decision (${v.python.decision}, median ${usd(v.python.mc_median, 0)}).</span>`}</p>`;
 }
 
@@ -693,7 +735,7 @@ function tocSpy() {
 }
 
 const initialHash = new URLSearchParams(location.hash.slice(1));
-renderHeader(); renderSummary(); renderExcluded(); renderRanking(); renderRobustness(); renderSegs(); renderFooter();
+renderHeader(); renderSummary(); renderExcluded(); renderRanking(); renderRobustness(); renderVolSharpe(); renderSegs(); renderFooter();
 selectFinalist(APP.finalists[0]);
 tocSpy();
 (function route() {

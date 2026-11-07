@@ -188,6 +188,10 @@ All events and sources: [data/manual/corporate_events.csv](data/manual/corporate
 - **Most alike:** Stryker–Zimmer Biomet (0.61), both orthopaedics. **Least alike:** Globus–Teleflex (0.01) and Becton Dickinson–DexCom (0.07).
 - **Abbott barely follows the market** (0.07 correlation with the S&P 500), which explains its very low beta (0.11).
 
+![Volatility and Sharpe ratio per company](outputs/charts/05_volatility_sharpe.png)
+
+- **Volatility and Sharpe ratio** ([risk_return.csv](outputs/tables/risk_return.csv)): no device company came close to the S&P 500's risk-adjusted return over the three years (Sharpe 1.05; best device company Medtronic 0.50), and 8 of the 17 had a negative Sharpe ratio, i.e. returned less than a risk-free deposit. DexCom, despite +44% in the last year, has a negative 3-year Sharpe (−0.22) with the highest volatility in the universe (47%).
+
 ### Session 5: the ranking, and how robust it is ✅
 
 **Reproduce it:** `python -m src.session5`. Outputs: [ranking.csv](outputs/tables/ranking.csv) (every metric rank, group score and contribution), [robustness.csv](outputs/tables/robustness.csv), [finalists.csv](outputs/tables/finalists.csv).
