@@ -104,6 +104,8 @@ WEIGHTS = {
 # ---------------------------------------------------------------------------
 N_SIMULATIONS = 10_000
 RANDOM_SEED = 42               # fixed so every run gives the same answer
+WEIGHT_SPREAD = 0.10           # each group weight varies +/- 10 points (Quality 20%-40%), then rescaled to sum to 100%
+N_FINALISTS = 3
 
 # ---------------------------------------------------------------------------
 # Decision rule (README section 9). Fixed before seeing any results.

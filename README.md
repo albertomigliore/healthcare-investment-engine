@@ -1,6 +1,6 @@
 # MedTech Investment Research Engine
 
-> **Status:** Sessions 1–3 of 9 complete: data pipeline built and checked on Stryker, then run on the whole universe. 17 eligible companies × 12 metrics, every company cross-checked against its own 10-K. See [Progress and findings](#progress-and-findings).
+> **Status:** Sessions 1–5 of 9 complete. 17 companies screened on 12 checked metrics; the ranking survives 10,000 random weightings. **Finalists for the valuation: Globus Medical, ResMed and DexCom.** See [Progress and findings](#progress-and-findings).
 > This page is the plan: every choice is written down *before* looking at results, so the conclusion can't be bent to fit a favourite company.
 
 ---
@@ -159,6 +159,52 @@ All events and sources: [data/manual/corporate_events.csv](data/manual/corporate
 - **Quality leaders:** DexCom, Insulet, ResMed and Intuitive all earn 20%+ ROIC. Becton Dickinson, Zimmer Biomet, Cooper and Teleflex earn about 5% or less, probably below their cost of capital.
 - **The market prices quality steeply:** Intuitive (42.7x EBITDA) and Edwards (39.3x) are the most expensive; Zimmer Biomet, Globus and GE HealthCare (12–13x) the cheapest.
 - **2026 was brutal for some:** Boston Scientific and Insulet both lost more than half their value in 12 months; DexCom and Becton Dickinson rose 40–55%.
+
+
+### Session 4: market risk across the universe ✅
+
+**Reproduce it:** `python -m src.session4`. The scored risk metrics (volatility, beta, drawdown) are in the Session 3 table; this adds the correlation table ([correlations_weekly.csv](outputs/tables/correlations_weekly.csv), [correlation_summary.csv](outputs/tables/correlation_summary.csv)).
+
+- **Device stocks move together less than you'd think:** the average correlation between two device companies' weekly returns is **0.32**, and with the S&P 500 only **0.28**. Most of each company's risk is its own (products, trials, recalls), which is why diversifying across them works.
+- **Most alike:** Stryker–Zimmer Biomet (0.61), both orthopaedics. **Least alike:** Globus–Teleflex (0.01) and Becton Dickinson–DexCom (0.07).
+- **Abbott barely follows the market** (0.07 correlation with the S&P 500), which explains its very low beta (0.11).
+
+### Session 5: the ranking, and how robust it is ✅
+
+**Reproduce it:** `python -m src.session5`. Outputs: [ranking.csv](outputs/tables/ranking.csv) (every metric rank, group score and contribution), [robustness.csv](outputs/tables/robustness.csv), [finalists.csv](outputs/tables/finalists.csv).
+
+![The screen: what drives each score, and how robust each rank is](outputs/charts/02_ranking.png)
+
+| Rank | Company | Total | Quality | Growth | Value | Momentum | Risk | P(top 3) | Rank range (5–95%) |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | **Globus Medical (GMED)** | **75.5** | 67 | 91 | 97 | 72 | 27 | **100%** | 1–1 |
+| 2 | **DexCom (DXCM)** | **67.8** | 88 | 88 | 22 | 94 | 12 | **95%** | 2–3 |
+| 3 | **ResMed (RMD)** | **66.6** | 85 | 59 | 72 | 44 | 52 | **100%** | 2–3 |
+| 4 | Zimmer Biomet (ZBH) | 56.2 | 31 | 44 | 97 | 66 | 67 | 5% | 4–8 |
+| 5 | Boston Scientific (BSX) | 52.5 | 42 | 81 | 78 | 3 | 35 | 0% | 4–12 |
+| 6 | Intuitive Surgical (ISRG) | 51.8 | 90 | 81 | 0 | 12 | 27 | 0% | 4–12 |
+| 7 | Edwards (EW) | 51.5 | 85 | 34 | 6 | 72 | 52 | 0% | 4–12 |
+| 8 | Insulet (PODD) | 50.7 | 62 | 97 | 22 | 3 | 29 | 0% | 5–13 |
+| 9 | STERIS (STE) | 49.6 | 44 | 50 | 47 | 38 | 90 | 0% | 6–11 |
+| 10 | Stryker (SYK) | 47.2 | 48 | 69 | 22 | 25 | 75 | 0% | 8–14 |
+| 11 | Medtronic (MDT) | 46.9 | 29 | 31 | 59 | 59 | 96 | 0% | 7–13 |
+| 12 | Becton Dickinson (BDX) | 46.4 | 15 | 25 | 66 | 97 | 81 | 0% | 5–14 |
+| 13 | Align (ALGN) | 43.9 | 52 | 9 | 69 | 78 | 4 | 0% | 7–15 |
+| 14 | GE HealthCare (GEHC) | 40.5 | 35 | 19 | 72 | 47 | 38 | 0% | 12–15 |
+| 15 | Abbott (ABT) | 39.4 | 58 | 9 | 41 | 22 | 81 | 0% | 12–16 |
+| 16 | Cooper (COO) | 33.8 | 10 | 41 | 56 | 31 | 46 | 0% | 15–17 |
+| 17 | Teleflex (TFX) | 29.8 | 8 | 22 | 25 | 88 | 38 | 0% | 16–17 |
+
+Group scores are 0–100 (average percentile rank of the group's metrics). Total = 30% Quality + 25% Growth + 20% Value + 15% Momentum + 10% Risk.
+
+**Robustness check (README section 8):** 10,000 runs, each group's weight drawn uniformly within ±10 points of its chosen value and rescaled to 100% (fixed random seed, so the result is reproducible).
+- **The top 3 is not an accident of my weights:** Globus Medical and ResMed finish top 3 in **100%** of runs, DexCom in **95%**. The next company, Zimmer Biomet, manages 5%; everyone else 0%.
+- **Finalists (rule: the 3 highest P(top 3)): Globus Medical, ResMed, DexCom.** Neither flagged company (Becton Dickinson, Teleflex) is among them, so the re-measurement rule is not triggered.
+
+**Why each finalist is there, and the question the valuation must answer**
+- **Globus Medical:** top-3 on Growth and Value: 42% revenue growth at only 12.1x EV/EBITDA. *But most of that growth came from buying NuVasive in 2023.* Is it cheap because the market sees through the bought growth?
+- **ResMed:** the all-rounder: high quality (25.8% ROIC, 28.8% FCF margin), reasonable price (15.6x), no weak group. *Does its 10% growth justify more than 15.6x?*
+- **DexCom:** the highest quality in the universe (33.2% ROIC) and the best momentum (+43.7%), but expensive (25.7x) and the most volatile (46.6%). *How much growth is already in the price?* That is exactly what the reverse DCF measures.
 
 ---
 
@@ -435,6 +481,9 @@ Every change, with the reason. This shows the thinking behind the project.
 | 7 Nov 2026 | If a company whose latest annual report includes since-separated businesses (BDX, TFX) reaches the top 3, it is re-measured on post-separation figures before valuation | Its price and its annual figures describe different companies. Rule fixed before the ranking exists |
 | 7 Nov 2026 | An empty last close may be filled from Yahoo's quote feed only if the quote was set after the close on that day | Yahoo's history returned blanks for 6 Nov; the quote feed matched three known closes exactly |
 | 7 Nov 2026 | SEC company numbers (CIKs) stored in a file, each verified against the company's registered name | The SEC's ticker list requires a personal contact email to download automatically |
+| 7 Nov 2026 | Percentile rank = share of the other companies beaten (best = 100, worst = 0); ties share the average | Simple to explain, and one extreme value (Insulet's 133% profit growth) can't dominate |
+| 7 Nov 2026 | Robustness: each weight drawn uniformly within ±10 points, then all rescaled to 100%; 10,000 runs, seed 42 | Matches the plan in section 8; the seed makes the result reproducible |
+| 7 Nov 2026 | Finalists = the 3 highest P(top 3), ties broken by base-case score | Picks companies that are top 3 under almost any reasonable weights, not just mine |
 
 ---
 
@@ -446,8 +495,8 @@ Every change, with the reason. This shows the thinking behind the project.
 | 1 | Setup + Stryker data | 2 | ✅ Stryker's prices and financials loaded and checked against its annual report |
 | 2 | Stryker metrics | 2 | ✅ All 12 metrics for Stryker, checked by hand |
 | 3 | All ~20 companies | 2 | ✅ One table: every company × every metric |
-| 4 | Market risk | 2 | Volatility, beta, drawdown, momentum, correlations |
-| 5 | Ranking + robustness | 2 | Ranking, contributions, top-3 probabilities |
+| 4 | Market risk | 2 | ✅ Volatility, beta, drawdown, momentum, correlations |
+| 5 | Ranking + robustness | 2 | ✅ Ranking, contributions, top-3 probabilities |
 | 6 | DCF + reverse DCF, company 1 | 3 | A working, sanity-checked DCF and the implied growth |
 | 7 | Companies 2–3, comparables, scenarios | 2 | All 3 finalists valued three ways |
 | 8 | Monte Carlo | 1.5 | Value distributions and P(undervalued) |
@@ -478,7 +527,10 @@ healthcare-investment-engine/
 │   ├── universe.py         # eligibility rules: who is in the screen and why
 │   ├── sec.py              # cross-check with each company's 10-K; restatement detection
 │   ├── report.py           # writes the hand-check documents
-│   └── session3.py         # Session 3 pipeline (all companies): python -m src.session3
+│   ├── session3.py         # Session 3 pipeline (all companies): python -m src.session3
+│   ├── session4.py         # correlations: python -m src.session4
+│   ├── scoring.py          # percentile ranks, group scores, weights, robustness simulation
+│   └── session5.py         # ranking, robustness, finalists, chart: python -m src.session5
 ├── notebooks/         # exploring and checking one company step by step
 ├── outputs/
 │   ├── charts/        # final charts
