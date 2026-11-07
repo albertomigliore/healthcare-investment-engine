@@ -107,6 +107,7 @@ The first run said SELL for all three; it is kept in the repository. Neither cha
 
 - **Survivorship and takeover bias.** Companies that failed or were bought (three of the 20 candidates) are missing, and those are often the attractive ones.
 - **Bought vs organic growth** can't be separated with free data. Globus shows why this matters.
+- **Model probabilities.** "P(value > price)" is the share of simulated futures above the price given the model and the ranges chosen; it measures how robust the conclusion is to those assumptions, not the true probability of the share being undervalued. The draws are also independent, whereas growth, margins and the discount rate are related in reality.
 - **One-number assumptions.** The equity risk premium (5%), terminal growth (2.5%) and beta adjustment are standard choices, not facts; the Monte Carlo varies the most important ones but not all.
 - **Guidance can be wrong.** The base cases lean on what companies say; a company that beats its own guidance consistently would be undervalued by this approach.
 - **Three years** of prices is short and may not cover a full cycle.

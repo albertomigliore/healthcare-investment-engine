@@ -16,9 +16,9 @@
 - Every rule was fixed before seeing results, and the decision log (section 12) records every choice, including two declared method changes.
 - Every company's revenue and operating profit were cross-checked against its own SEC 10-K (34/34 match).
 - 12 data problems were found and fixed: an intraday price disguised as a close, restated revenue, a spin-off recorded as a stock split, a pending takeover pinning a share price, and more.
-- 80 automatic tests, including a check that the browser engine reproduces the Python valuation.
+- 83 automatic tests, including a check that the browser engine reproduces the Python valuation.
 
-**Run it:** `pip install -r requirements.txt`, then `python -m src.session3` (data and metrics), `python -m src.session5` (ranking), `python -m src.session6` (valuation), `python -m src.export_app` (data for the interactive lab), `python -m pytest` (tests). Python · pandas · NumPy · SciPy · matplotlib · yfinance · SEC XBRL API · FRED.
+**Run it:** `pip install -r requirements.txt`, then `python -m src.run_all` (downloads the data and runs every step in the right order; add `--no-download` to re-run from the saved data), and `python -m pytest` (tests). Tested from a fresh clone with all outputs deleted: same finalists, ranking and decisions. Python · pandas · NumPy · SciPy · matplotlib · yfinance · SEC XBRL API · FRED.
 
 > *A learning project, not investment advice.* Below: the results session by session, then the original plan, which was written before any data was looked at.
 
@@ -497,7 +497,7 @@ Fixing the rule in advance means the conclusion follows the evidence and can't b
 - **A ranking table** of all companies, with each group's contribution.
 - **Top-3 probabilities** from the robustness check.
 - **A valuation for each of the 3 finalists**: DCF, comparables, reverse DCF, bear/base/bull and the Monte Carlo distribution.
-- **3–5 charts** that support the decision, and no more.
+- **3–5 charts** that support the decision, and no more. *(Updated 8 Nov 2026: the decision charts are 02–04; charts 05–06 on volatility and the Sharpe ratio were added as risk context, see decision log.)*
 - **An investment memo** (5–7 pages) in `reports/`: recommendation, reasons, valuation, risks, what the market is pricing in, and limitations.
 
 ---
@@ -507,6 +507,9 @@ Fixing the rule in advance means the conclusion follows the evidence and can't b
 - **Survivorship bias**: we only look at companies that exist today. The ones that failed or were bought aren't in the list.
 - **Exclusion bias**: leaving out loss-making companies removes the riskiest part of the sector.
 - **Takeover bias** (found in Session 3): three of the 20 candidates were bought or are being bought. Taken-over companies are often the attractive ones, and they are exactly the ones the screen can't include.
+- **Model probabilities, not real-world probabilities**: "P(value > price)" is the share of simulated futures above the price *given the model and the ranges chosen*. It measures how robust the conclusion is to those assumptions, not the true chance of the share being undervalued.
+- **Independent draws**: the Monte Carlo draws growth, margin and WACC independently. In reality they are related (faster growth often comes with higher margins), so the simulated spread may be somewhat too narrow or too wide.
+- **Robustness covers the weights, not the metrics**: the 10,000-run test varies the group weights; a different choice of the 12 metrics themselves could change the ranking.
 - **Growth includes acquisitions**: revenue growth doesn't separate organic growth from bought growth (e.g. Globus–NuVasive). Free data doesn't split the two.
 - **Perimeter changes**: when a company sells a business after its latest year end (Becton Dickinson, Teleflex), its annual figures and its share price describe different companies. These are flagged, not corrected, in the screen.
 - **Data quality**: Yahoo Finance data can have gaps or errors, which is why the top 3 are checked against their annual reports.
@@ -557,6 +560,8 @@ Every change, with the reason. This shows the thinking behind the project.
 | 8 Nov 2026 | Base-case growth from company guidance, not from the 3-year history | Globus' 42% history was mostly acquisitions; guidance (~5%) is what the business is expected to do on its own |
 | 8 Nov 2026 | **Method change after results (declared):** 10-year forecast (was 5) and EBITDA-margin based (was operating margin) | The 5-year version implied terminal multiples (7.6–12x) far below any device company's (12–43x), and mishandled non-cash amortisation. First-run results kept and reported |
 | 8 Nov 2026 | **Method change after results (declared):** working capital from the cash flow statement (3-yr cost per extra $ of revenue, floor 0), not the balance sheet | Modelled DexCom cash margin was 9.6% vs 23.1% actual; the balance-sheet measure ignored accrued rebates |
+| 8 Nov 2026 | Added charts 05 (volatility and Sharpe ratio per company) and 06 (12-month rolling volatility and Sharpe, one per finalist), beyond the planned 3–5 charts | Risk context requested during review; they explain rather than drive the decision, which still rests on charts 02–04 |
+| 8 Nov 2026 | Added `src/run_all.py` and stated three further limitations (model-conditional probabilities, independent Monte Carlo draws, robustness over weights only) | Final review: the documented run order did not work from a fresh clone, and the limitations an expert would raise should be stated, not left for them to find |
 | 8 Nov 2026 | Share-based pay treated as a real cost (not added back) | It dilutes shareholders. Conservative; tested: adding it back moves the Monte Carlo median to +7.4% (Globus), +4.4% (ResMed), −38% (DexCom) vs price: no decision changes |
 
 ---
@@ -604,7 +609,8 @@ healthcare-investment-engine/
 │   ├── scoring.py          # percentile ranks, group scores, weights, robustness simulation
 │   ├── session5.py         # ranking, robustness, finalists, chart: python -m src.session5
 │   ├── valuation.py        # WACC, DCF, reverse DCF, comparables, Monte Carlo, decision rule
-│   └── session6.py         # Sessions 6-8: value the finalists: python -m src.session6
+│   ├── session6.py         # Sessions 6-8: value the finalists: python -m src.session6
+│   └── run_all.py          # the whole pipeline in the right order: python -m src.run_all
 ├── notebooks/         # first hands-on exploration of Stryker (Session 1), kept as a record
 ├── outputs/
 │   ├── charts/        # final charts
