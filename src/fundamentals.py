@@ -11,6 +11,7 @@ The result has one row per financial year (oldest first) and one column per item
 """
 import pandas as pd
 
+from config import settings
 from src import metrics
 
 # For each item: the statement it lives in, and the labels to try, best first.
@@ -27,7 +28,9 @@ FIELDS = {
                                          "Cash Flow From Continuing Operating Activities"]),
     "capital_expenditure": ("cashflow", ["Capital Expenditure", "Purchase Of PPE"]),
     "total_debt": ("balance", ["Total Debt"]),
-    "cash": ("balance", ["Cash And Cash Equivalents"]),
+    # Cash plus short-term investments: both turn into cash within a year (Session 3 decision;
+    # e.g. Medtronic $1.9bn cash alone vs $9.2bn including short-term investments).
+    "cash": ("balance", ["Cash Cash Equivalents And Short Term Investments", "Cash And Cash Equivalents"]),
     "equity": ("balance", ["Stockholders Equity", "Common Stock Equity"]),
     "shares": ("balance", ["Ordinary Shares Number", "Share Issued"]),
 }
@@ -73,6 +76,32 @@ def extract_fundamentals(statements: dict[str, pd.DataFrame]) -> tuple[pd.DataFr
     return table, sources
 
 
+def apply_overrides(ticker: str, table: pd.DataFrame, sources: dict) -> tuple[pd.DataFrame, list[str]]:
+    """
+    Fill gaps from data/manual/overrides.csv: values checked by hand in the
+    company's 10-K, each with its source. An override may only fill a MISSING
+    value; it never replaces a number Yahoo provided. Derived items are rebuilt.
+    """
+    path = settings.MANUAL_DIR / "overrides.csv"
+    if not path.exists():
+        return table, []
+    overrides = pd.read_csv(path)
+    overrides = overrides[overrides["ticker"] == ticker]
+    table, notes = table.copy(), []
+    for _, o in overrides.iterrows():
+        year = pd.Timestamp(o["fiscal_year_end"])
+        if year in table.index and pd.isna(table.loc[year, o["item"]]):
+            table.loc[year, o["item"]] = o["value"]
+            sources[o["item"]] = f"override: {o['source']}"
+            notes.append(f"{o['item']} {year:%Y}: filled with {o['value']:,.0f} from {o['source']}")
+    if notes:
+        table["free_cash_flow"] = [metrics.free_cash_flow(a, b) for a, b in
+                                   zip(table["operating_cash_flow"], table["capital_expenditure"])]
+        table["ebitda"] = table["operating_income"] + table["depreciation_amortisation"]
+        table["net_debt"] = table["total_debt"] - table["cash"]
+    return table, notes
+
+
 def missing_items(table: pd.DataFrame, sources: dict) -> list[str]:
     """Plain-English list of gaps, for the data-quality flags."""
     flags = [f"{field}: no matching line in Yahoo's statements"
@@ -82,5 +111,5 @@ def missing_items(table: pd.DataFrame, sources: dict) -> list[str]:
               for field, value in latest.items() if pd.isna(value) and sources.get(field) is not None]
     fallbacks = [f"{field}: used fallback label '{label}'"
                  for field, label in sources.items()
-                 if label is not None and label != FIELDS[field][1][0]]
+                 if label is not None and label != FIELDS[field][1][0] and not label.startswith("override:")]
     return flags + fallbacks

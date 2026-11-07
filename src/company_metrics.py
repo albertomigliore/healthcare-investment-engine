@@ -60,13 +60,16 @@ def compute_company_metrics(ticker: str,
                             market: pd.Series,
                             sector: pd.Series,
                             valuation_date: str = settings.VALUATION_DATE,
-                            risk_free_short: float = float("nan")) -> CompanyResult:
+                            risk_free_short: float = float("nan"),
+                            growth_years: int = settings.GROWTH_YEARS) -> CompanyResult:
     """
     Parameters
     ----------
     fundamentals : output of fundamentals.extract_fundamentals (one row per year, oldest first)
     stock, market, sector : daily closing prices of the company, SPY and IHI
     risk_free_short : average 3-month T-bill rate over the price window (as a decimal)
+    growth_years : normally 3; shorter only if the base year is not like-for-like
+                   (see sec.comparable_growth_years)
     """
     result = CompanyResult(ticker)
     vd = pd.Timestamp(valuation_date)
@@ -74,7 +77,7 @@ def compute_company_metrics(ticker: str,
 
     latest = fundamentals.iloc[-1]
     fy = fundamentals.index[-1]
-    m = settings.GROWTH_YEARS
+    m = growth_years
     base = fundamentals.iloc[-1 - m] if len(fundamentals) > m else None
     base_fy = fundamentals.index[-1 - m] if base is not None else None
 
@@ -83,15 +86,19 @@ def compute_company_metrics(ticker: str,
     price_date = stock.index[-1]
     market_cap = price * latest["shares"]
     ev = metrics.enterprise_value(market_cap, latest["total_debt"], latest["cash"])
+
+    def millions(x):
+        return x if pd.isna(x) else round(x / 1e6)
+
     result.context = {
         "Financial year used": f"{fy:%Y} (ended {fy:%d %b %Y})",
         "Price date": f"{price_date:%d %b %Y}",
         "Share price ($)": round(price, 2),
         "Shares (m)": round(latest["shares"] / 1e6, 1),
-        "Market cap ($m)": round(market_cap / 1e6),
-        "Enterprise value ($m)": round(ev / 1e6),
-        "EBITDA ($m)": round(latest["ebitda"] / 1e6),
-        "Free cash flow ($m)": round(latest["free_cash_flow"] / 1e6),
+        "Market cap ($m)": millions(market_cap),
+        "Enterprise value ($m)": millions(ev),
+        "EBITDA ($m)": millions(latest["ebitda"]),
+        "Free cash flow ($m)": millions(latest["free_cash_flow"]),
     }
 
     # ---------------- QUALITY ----------------

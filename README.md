@@ -1,6 +1,6 @@
 # MedTech Investment Research Engine
 
-> **Status:** Sessions 1–2 of 9 complete: data pipeline built and checked, and all 12 screening metrics calculated and hand-checked on the test company (Stryker). See [Progress and findings](#progress-and-findings).
+> **Status:** Sessions 1–3 of 9 complete: data pipeline built and checked on Stryker, then run on the whole universe. 17 eligible companies × 12 metrics, every company cross-checked against its own 10-K. See [Progress and findings](#progress-and-findings).
 > This page is the plan: every choice is written down *before* looking at results, so the conclusion can't be bent to fit a favourite company.
 
 ---
@@ -68,12 +68,12 @@ Source: Stryker 10-K, accession 0000310764-26-000010, filed 11 Feb 2026, via the
 
 | Group | Metric | Workings ($ millions) | Stryker |
 |---|---|---|---|
-| Quality | ROIC | 4,889 × (1 − 19.5%) ÷ (15,859 debt + 22,420 equity − 4,011 cash) | **11.5%** |
+| Quality | ROIC | 4,889 × (1 − 19.5%) ÷ (15,859 debt + 22,420 equity − 4,100 cash) | **11.5%** |
 | Quality | FCF margin | (5,044 operating cash flow − 761 capex) ÷ 25,116 revenue | **17.1%** |
-| Quality | Net debt / EBITDA | (15,859 − 4,011) ÷ (4,889 operating income + 1,193 D&A) | **1.95x** |
+| Quality | Net debt / EBITDA | (15,859 − 4,100) ÷ (4,889 operating income + 1,193 D&A) | **1.93x** |
 | Growth | Revenue growth (3-yr) | (25,116 ÷ 18,449)^(1/3) − 1 | **10.8%** |
 | Growth | Operating profit growth (3-yr) | (4,889 ÷ 2,841)^(1/3) − 1 | **19.8%** |
-| Value | EV / EBITDA | (124,645 market cap + 15,859 − 4,011) ÷ 6,082 | **22.4x** |
+| Value | EV / EBITDA | (124,645 market cap + 15,859 − 4,100) ÷ 6,082 | **22.4x** |
 | Value | FCF yield | 4,283 ÷ 124,645 ($325.87 × 382.5m shares) | **3.4%** |
 | Momentum | 12-1 month return | $278.20 (6 Oct 2026) ÷ $349.93 (6 Nov 2025) − 1 | **−20.5%** |
 | Momentum | Return vs sector (12m) | SYK −6.9% minus IHI −4.6% | **−2.2%** |
@@ -82,7 +82,7 @@ Source: Stryker 10-K, accession 0000310764-26-000010, filed 11 Feb 2026, via the
 | Risk | Max drawdown | $268.90 (24 Sep 2026) ÷ $398.20 (25 Jul 2025) − 1 | **−32.5%** |
 | *Reported* | Sharpe ratio | (6.6% yearly return − 4.3% avg. T-bill) ÷ 25.1% | *0.09* |
 
-Price: close of 6 Nov 2026. Financials: FY2025. Tax rate: 3-year pooled effective rate. Risk-free rates from FRED ([outputs/tables/risk_free_rates.csv](outputs/tables/risk_free_rates.csv)): 3-month T-bill averaged 4.33% over the 3 years; 10-year Treasury 4.90% (4 Nov 2026, the latest published before the valuation date).
+Price: close of 6 Nov 2026. Financials: FY2025. Cash = cash + short-term investments (4,011 + 89; Session 3 decision). Tax rate: 3-year pooled effective rate. Risk-free rates from FRED ([outputs/tables/risk_free_rates.csv](outputs/tables/risk_free_rates.csv)): 3-month T-bill averaged 4.33% over the 3 years; 10-year Treasury 4.90% (4 Nov 2026, the latest published before the valuation date).
 
 **How the numbers were checked**
 - **By hand:** every row above can be recomputed with a calculator from the workings column.
@@ -94,6 +94,71 @@ Price: close of 6 Nov 2026. Financials: FY2025. Tax rate: 3-year pooled effectiv
 - **Investors pay for growth, not current cash.** The FCF yield (3.4%) is **below** the 10-year Treasury yield (4.9%): buying Stryker today only makes sense if its cash flows keep growing. The reverse DCF (Session 6) will put a number on how much growth the price assumes.
 - **Low beta, high volatility.** Stryker moves only about half as much as the market (beta 0.53), yet its price swings more than the market's (25% vs 15% volatility). So most of its risk is **company-specific**, not market-driven, and in a diversified portfolio much of that risk would cancel out.
 - **The trend is negative.** Down 20.5% on the 12-1 measure and slightly behind the sector over 12 months: momentum will count against it in the screen.
+
+
+### Session 3: the whole universe, every company × every metric ✅
+
+**Reproduce it:** `python -m src.session3`. Outputs in [outputs/tables/](outputs/tables/): `universe_eligibility.csv`, `metrics_all.csv`, `sec_crosscheck.csv`, `data_flags.csv`, and a hand-check document per company in [outputs/tables/workings/](outputs/tables/workings/).
+
+**1. Who is in: 17 of 21 candidates**
+
+| Company | Decision | Why | Source |
+|---|---|---|---|
+| Hologic (HOLX) | OUT | Taken private by Blackstone and TPG; delisted 7 Apr 2026 | [360Dx](https://www.360dx.com/business-news/blackstone-tpg-complete-hologic-acquisition) |
+| Masimo (MASI) | OUT | Acquired by Danaher at $180/share; delisted 10 Jun 2026 | [Investing.com](https://www.investing.com/news/sec-filings/danaher-completes-acquisition-of-masimo-company-delists-from-nasdaq-93CH-4735810) |
+| Penumbra (PEN) | OUT | Agreed takeover by Boston Scientific at $374/share, pending (FTC review, close expected Q1 2027). Its price now tracks the deal terms, not the business: 60-day daily volatility 0.5% vs ~2% for peers | [MLex](https://www.mlex.com/mlex/articles/2543499/boston-scientific-says-penumbra-close-will-push-into-q1-2027) |
+| Baxter (BAX) | OUT | Rule 4: as-reported operating loss of −$308m in 2025, after a $485m write-down. (Before the write-down it would be +$177m, but the rule fixed in advance uses as-reported figures; Baxter also lost −$2.8bn in 2022.) | Yahoo, cross-checked with 10-K |
+| Teleflex (TFX), Becton Dickinson (BDX) | IN, flagged | Selling or separating businesses: see data finding 9 | [BD](https://news.bd.com/2026-02-09-BD-Completes-Combination-of-Biosciences-Diagnostic-Solutions-Business-with-Waters-Corporation), [Teleflex 10-Q](https://www.sec.gov/Archives/edgar/data/0000096943/000009694326000109/tfx-20260930.htm) |
+
+All events and sources: [data/manual/corporate_events.csv](data/manual/corporate_events.csv). Two independent confirmations of the delistings: Yahoo has no prices for them, and the SEC's own records list no ticker for either company.
+
+**2. The 12 metrics for all 17 companies** (price: close of 6 Nov 2026; financials: each company's latest annual report)
+
+| Company | FY end | Mkt cap $bn | ROIC | FCF margin | Net debt/EBITDA | Revenue growth | Op. profit growth | EV/EBITDA | FCF yield | 12-1 mom. | vs sector | Volatility | Beta | Max DD |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Medtronic (MDT) | 2026-04 | 130 | 7.6% | 14.9% | 2.0x | 5.2% | 5.6% | 15.8x | 4.2% | -0.1% | 21.4% | 22.0% | 0.27 | -28.9% |
+| Abbott (ABT) | 2025-12 | 191 | 14.1% | 16.7% | 0.4x | 0.5% | -1.2% | 17.5x | 3.9% | -20.0% | -5.2% | 23.0% | 0.11 | -39.6% |
+| Becton Dickinson (BDX) | 2025-09 | 60 | 5.2% | 12.2% | 3.7x | 5.0% | 4.2% | 15.7x | 4.4% | 32.5% | 60.4% | 25.9% | 0.28 | -34.6% |
+| GE HealthCare (GEHC) | 2025-12 | 38 | 12.8% | 7.3% | 1.8x | 4.0% | 3.1% | 13.0x | 4.0% | -12.5% | 15.9% | 33.7% | 1.09 | -37.4% |
+| Stryker (SYK) | 2025-12 | 125 | 11.5% | 17.1% | 1.9x | 10.8% | 19.8% | 22.4x | 3.4% | -20.5% | -2.2% | 25.1% | 0.53 | -32.5% |
+| Zimmer Biomet (ZBH) | 2025-12 | 21 | 5.0% | 17.3% | 3.2x | 5.9% | 16.4% | 12.6x | 6.9% | 2.4% | 25.2% | 28.4% | 0.39 | -38.8% |
+| Intuitive Surgical (ISRG) | 2025-12 | 161 | 21.9% | 24.7% | -1.6x | 17.4% | 23.1% | 42.7x | 1.5% | -26.1% | -12.7% | 33.1% | 1.16 | -45.6% |
+| Globus Medical (GMED) | 2025-12 | 10 | 9.9% | 19.7% | -0.6x | 42.2% | 28.2% | 12.1x | 6.0% | 23.9% | 19.8% | 42.2% | 0.74 | -44.4% |
+| Boston Scientific (BSX) | 2025-12 | 63 | 8.9% | 17.0% | 1.9x | 16.5% | 29.9% | 14.6x | 5.4% | -57.4% | -52.2% | 28.6% | 0.73 | -61.5% |
+| Edwards (EW) | 2025-12 | 59 | 16.2% | 22.0% | -2.5x | 10.8% | -5.5% | 39.3x | 2.3% | 4.9% | 28.5% | 31.5% | 0.62 | -37.5% |
+| DexCom (DXCM) | 2025-12 | 31 | 33.2% | 23.1% | -0.5x | 17.0% | 32.6% | 25.7x | 3.5% | 43.7% | 41.5% | 46.6% | 1.07 | -61.0% |
+| Insulet (PODD) | 2025-12 | 10 | 27.1% | 12.9% | 0.4x | 27.5% | 132.7% | 18.7x | 3.4% | -58.3% | -50.1% | 40.8% | 0.46 | -63.0% |
+| ResMed (RMD) | 2026-06 | 34 | 25.8% | 28.8% | -0.3x | 10.2% | 18.6% | 15.6x | 4.8% | -10.7% | -0.1% | 31.9% | 0.67 | -37.3% |
+| Teleflex (TFX) | 2025-12 | 7 | 2.2% | 12.3% | 7.9x | 7.9% ² | -32.4% ² | 30.4x | 3.7% | 16.2% | 45.2% | 35.8% | 0.52 | -60.1% |
+| STERIS (STE) | 2026-03 | 25 | 9.6% | 16.4% | 1.0x | 9.4% | 11.7% | 16.6x | 3.9% | -19.1% | 2.5% | 23.9% | 0.33 | -25.4% |
+| Cooper (COO) | 2025-10 | 12 | 4.4% | 10.6% | 2.3x | 7.3% | 10.4% | 13.8x | 3.6% | -18.2% | -5.0% | 31.5% | 0.57 | -52.1% |
+| Align (ALGN) | 2025-12 | 12 | 12.4% | 12.2% | -1.3x | 2.6% | -5.3% | 13.9x | 4.1% | 5.8% | 28.8% | 44.5% | 1.31 | -62.2% |
+
+² Teleflex: growth over 2 years (2023–25), the longest like-for-like window (data finding 7). Max DD = maximum drawdown over 3 years.
+
+**3. How the numbers were checked**
+- **Every company against its own 10-K:** revenue and operating income for all 17, from the SEC's XBRL data: **34 of 34 match** within 1% ([sec_crosscheck.csv](outputs/tables/sec_crosscheck.csv)). SEC identifiers verified against each company's registered name ([data/manual/sec_ciks.csv](data/manual/sec_ciks.csv)).
+- **Restatements detected automatically:** every revenue figure in every 10-K since 2022 is compared across filings, to catch years re-reported after a business was sold.
+- **Plausibility ranges:** every value outside a sensible range for a large device company is flagged and investigated by hand ([data_flags.csv](outputs/tables/data_flags.csv)). All flags below were explained; none was a data error.
+- **56 automatic tests**, now also covering the eligibility rules, the SEC matching, restatement detection and the price-gap fill.
+
+**4. Data findings from Session 3**
+
+| # | Finding | What was done |
+|---|---|---|
+| 5 | On Saturday 7 Nov, Yahoo's price history returned an **empty close for Friday 6 Nov** for every ticker (volume present, prices missing). | On the latest day the adjusted close equals the actual close, so the gap is filled from Yahoo's separate quote feed, only if the quote was set after the close on that same day. The quote feed matched three known closes exactly (SYK $325.87, SPY $735.29, IHI $57.59). Every value used is saved in `data/raw/quote_closes_downloaded_*.csv`. |
+| 6 | **Intuitive Surgical has no "Total Debt" line** on Yahoo, which made its enterprise value impossible to calculate. | Its 2025 10-K reports no borrowings (the only "debt" items are debt *securities it owns*). Debt = 0 is recorded in [data/manual/overrides.csv](data/manual/overrides.csv) with the filing number. Overrides may only fill a gap, never replace a Yahoo value. |
+| 7 | **Teleflex's growth compared two different companies:** 2023–25 revenue was restated without the businesses being sold, but 2022 never was ($2,791m vs $1,712m in 2023). Revenue growth showed −10.6% a year. | Restatement detection found it (and found that Edwards' and STERIS' restatements were already handled correctly by Yahoo). Teleflex's growth is measured over the 2 like-for-like years: **+7.9% a year**. |
+| 8 | **Cash alone understates liquidity:** Medtronic has $1.9bn of cash but $9.2bn including short-term investments; Intuitive $3.4bn vs $5.9bn. | Cash = cash + short-term investments (both available within a year), for every company. Long-term investments stay excluded (conservative). |
+| 9 | **Becton Dickinson's latest annual report describes a bigger company than its share price does.** Its Biosciences & Diagnostics business went to Waters in Feb 2026, after its Sep-2025 year end. That makes BD look roughly 10% cheaper on EV/EBITDA than it is. Teleflex has a milder version: debt covers the whole company, earnings only the businesses it keeps (hence its 7.9x net debt/EBITDA). | Both flagged. Rule fixed now, before any ranking: such a company can only become a finalist after being re-measured on post-separation figures. |
+| 10 | **Yahoo treats spin-offs as stock splits.** BD's spin-off was recorded as a 1.272-for-1 "split" on 10 Feb 2026. | Checked: BD's last pre-spin close was $207.40, the Waters shares handed out were worth $44.30 (0.135 × $328.14), and 207.40 ÷ (207.40 − 44.30) = 1.272. The adjustment is exactly right, so BD's +54% 12-month return is a correct total return. |
+| 11 | **Big price falls verified as real**, not data errors: Boston Scientific −57% (weak heart-rhythm sales, guidance cuts, a cyberattack) and Insulet −58% (outlook cut on Type 2 patient retention). The largest one-day falls in the data match the news dates exactly (4 Feb and 5 Aug 2026). | No change; these are genuine. |
+| 12 | **Extreme but genuine growth:** Insulet's operating profit grew 133% a year from a tiny $38m base; Globus' revenue grew 42% a year mostly through its NuVasive merger. | Kept. The scoring uses percentile ranks, so one extreme value can't dominate (README section 7). |
+
+**5. First impressions** (the ranking itself comes in Session 5)
+- **Quality leaders:** DexCom, Insulet, ResMed and Intuitive all earn 20%+ ROIC. Becton Dickinson, Zimmer Biomet, Cooper and Teleflex earn about 5% or less, probably below their cost of capital.
+- **The market prices quality steeply:** Intuitive (42.7x EBITDA) and Edwards (39.3x) are the most expensive; Zimmer Biomet, Globus and GE HealthCare (12–13x) the cheapest.
+- **2026 was brutal for some:** Boston Scientific and Insulet both lost more than half their value in 12 months; DexCom and Becton Dickinson rose 40–55%.
 
 ---
 
@@ -147,6 +212,8 @@ The ranking only *suggests* candidates. The valuation decides.
 | Eye care and dental | Cooper Companies (COO), Align Technology (ALGN) |
 
 **Still to check** (in Session 1, with the data): that every company is still listed in the same form. Companies get bought, taken private or split up. **Hologic** and **Teleflex** in particular had deals in progress in 2025. Anything that fails a rule is removed and recorded in the decision log (section 12).
+
+**Checked in Session 3:** Hologic, Masimo and Penumbra are out (taken private, acquired, pending takeover), and Baxter fails the loss rule. **17 companies remain.** See [Session 3 results](#session-3-the-whole-universe-every-company--every-metric-).
 
 **Excluded on purpose:**
 - Johnson & Johnson: mostly a drug company.
@@ -325,6 +392,9 @@ Fixing the rule in advance means the conclusion follows the evidence and can't b
 
 - **Survivorship bias**: we only look at companies that exist today. The ones that failed or were bought aren't in the list.
 - **Exclusion bias**: leaving out loss-making companies removes the riskiest part of the sector.
+- **Takeover bias** (found in Session 3): three of the 20 candidates were bought or are being bought. Taken-over companies are often the attractive ones, and they are exactly the ones the screen can't include.
+- **Growth includes acquisitions**: revenue growth doesn't separate organic growth from bought growth (e.g. Globus–NuVasive). Free data doesn't split the two.
+- **Perimeter changes**: when a company sells a business after its latest year end (Becton Dickinson, Teleflex), its annual figures and its share price describe different companies. These are flagged, not corrected, in the screen.
 - **Data quality**: Yahoo Finance data can have gaps or errors, which is why the top 3 are checked against their annual reports.
 - **Fiscal years differ**: some companies' years end in different months, so "the last year" doesn't cover exactly the same period for everyone.
 - **The weights are subjective**: tested in section 8, but still a choice.
@@ -356,6 +426,15 @@ Every change, with the reason. This shows the thinking behind the project.
 | 6 Nov 2026 | Risk-free rates from FRED (DTB3, DGS10); Sharpe uses the 3-year *average* T-bill rate | FRED republishes the US Treasury's daily rates as a free, downloadable series. A 3-year return should be compared with the rate available over those same 3 years |
 | 6 Nov 2026 | Market cap = valuation-date price × shares from the latest balance sheet | The same, verifiable share count for every company (it matched the 10-K cover page within 0.1% for Stryker) |
 | 6 Nov 2026 | Max drawdown stored as a negative number, with "higher is better" | −10% is a smaller fall than −30%, so scoring must rank closer-to-zero higher |
+| 7 Nov 2026 | "Makes losses" (rule 4) defined as: negative as-reported operating income or negative free cash flow in the latest year. Defined before computing any results | Losses in the core business or negative cash make a DCF meaningless. Consequence: Baxter is out (−$308m after a $485m write-down) |
+| 7 Nov 2026 | Exclude companies under a pending agreed takeover (Penumbra) | The share price is set by the deal terms, not by the business, so value and momentum metrics would measure the deal |
+| 7 Nov 2026 | Don't replace the 4 companies that dropped out | Choosing replacements after seeing the data would open the door to picking favourites; 17 companies are enough to rank |
+| 7 Nov 2026 | Cash = cash + short-term investments | Both are available within a year; standard in enterprise value. Medtronic: $1.9bn vs $9.2bn |
+| 7 Nov 2026 | Growth measured over the longest like-for-like window (normally 3 years), detected automatically from restatements in the 10-Ks | Teleflex's 2022 figure included businesses later sold; comparing it with 2025 measured the sale, not the business |
+| 7 Nov 2026 | Hand-checked values may fill gaps only, from the 10-K, with the filing number (`data/manual/overrides.csv`) | Intuitive Surgical has no debt but Yahoo has no debt line; a gap must not silently become zero, but a verified zero is a fact |
+| 7 Nov 2026 | If a company whose latest annual report includes since-separated businesses (BDX, TFX) reaches the top 3, it is re-measured on post-separation figures before valuation | Its price and its annual figures describe different companies. Rule fixed before the ranking exists |
+| 7 Nov 2026 | An empty last close may be filled from Yahoo's quote feed only if the quote was set after the close on that day | Yahoo's history returned blanks for 6 Nov; the quote feed matched three known closes exactly |
+| 7 Nov 2026 | SEC company numbers (CIKs) stored in a file, each verified against the company's registered name | The SEC's ticker list requires a personal contact email to download automatically |
 
 ---
 
@@ -366,7 +445,7 @@ Every change, with the reason. This shows the thinking behind the project.
 | 0 | Specification (this page) | 1 | ✅ This README |
 | 1 | Setup + Stryker data | 2 | ✅ Stryker's prices and financials loaded and checked against its annual report |
 | 2 | Stryker metrics | 2 | ✅ All 12 metrics for Stryker, checked by hand |
-| 3 | All ~20 companies | 2 | One table: every company × every metric |
+| 3 | All ~20 companies | 2 | ✅ One table: every company × every metric |
 | 4 | Market risk | 2 | Volatility, beta, drawdown, momentum, correlations |
 | 5 | Ranking + robustness | 2 | Ranking, contributions, top-3 probabilities |
 | 6 | DCF + reverse DCF, company 1 | 3 | A working, sanity-checked DCF and the implied growth |
@@ -386,7 +465,8 @@ healthcare-investment-engine/
 │   └── settings.py    # every choice in one place: tickers, dates, weights, decision rule
 ├── data/
 │   ├── raw/           # downloads exactly as received (never edited)
-│   ├── manual/        # figures taken from official filings, with their source
+│   ├── manual/        # hand-checked facts, each with its source: 10-K figures, corporate events,
+│   │                  #   SEC company numbers, overrides
 │   └── processed/     # cleaned, checked data
 ├── src/
 │   ├── data.py        # downloading, saving and loading data
@@ -394,7 +474,11 @@ healthcare-investment-engine/
 │   ├── metrics.py          # the formulas, one small function each
 │   ├── company_metrics.py  # the 12 metrics for one company, with workings
 │   ├── session1.py         # Session 1 pipeline: python -m src.session1
-│   └── session2.py         # Session 2 pipeline: python -m src.session2
+│   ├── session2.py         # Session 2 pipeline: python -m src.session2
+│   ├── universe.py         # eligibility rules: who is in the screen and why
+│   ├── sec.py              # cross-check with each company's 10-K; restatement detection
+│   ├── report.py           # writes the hand-check documents
+│   └── session3.py         # Session 3 pipeline (all companies): python -m src.session3
 ├── notebooks/         # exploring and checking one company step by step
 ├── outputs/
 │   ├── charts/        # final charts

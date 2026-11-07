@@ -1,0 +1,10 @@
+ticker,type,detail
+BDX,corporate event,Biosciences & Diagnostic Solutions combined with Waters (Reverse Morris Trust; BD received $4bn cash)
+ISRG,data,total_debt 2025: filled with 0 from ISRG 10-K FY2025 (accession 0001035267-26-000010)
+GMED,outside plausible range,revenue_cagr = 0.422 (expected -0.1 to 0.3)
+PODD,outside plausible range,operating_income_cagr = 1.327 (expected -0.25 to 0.5)
+TFX,data,"growth measured over 2 years (2023-2025): later years were restated after a divestiture, but 2022 was never restated, so it is not like-for-like"
+TFX,outside plausible range,net_debt_to_ebitda = 7.926 (expected -3.0 to 5.0)
+TFX,outside plausible range,operating_income_cagr = -0.324 (expected -0.25 to 0.5)
+TFX,corporate event,Sale of Acute Care & Interventional Urology (to Intersurgical) and OEM (to Montagu/Kohlberg) businesses for ~$2.0bn
+STE,data,depreciation_amortisation: used fallback label 'Depreciation Amortization Depletion'

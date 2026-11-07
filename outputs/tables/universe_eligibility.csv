@@ -1,0 +1,22 @@
+ticker,corporate_event,first_price,last_price_date,annual_reports,market_cap_bn,operating_income_m,free_cash_flow_m,currency,eligible,reason_if_out
+MDT,,2023-11-06,2026-11-06,4,130.3,6467.0,5426.0,USD,True,
+ABT,,2023-11-06,2026-11-06,4,190.9,8053.0,7395.0,USD,True,
+BDX,Biosciences & Diagnostic Solutions combined with Waters (Reverse Morris Trust; BD received $4bn cash) (Completed),2023-11-06,2026-11-06,4,60.5,2579.0,2671.0,USD,True,
+GEHC,,2023-11-06,2026-11-06,4,37.5,2763.0,1505.0,USD,True,
+SYK,,2023-11-06,2026-11-06,4,124.6,4889.0,4283.0,USD,True,
+ZBH,,2023-11-06,2026-11-06,4,20.6,1098.0,1420.0,USD,True,
+ISRG,,2023-11-06,2026-11-06,4,160.8,2946.0,2491.0,USD,True,
+GMED,,2023-11-06,2026-11-06,4,9.6,480.0,579.0,USD,True,
+BSX,,2023-11-06,2026-11-06,4,63.4,3613.0,3404.0,USD,True,
+EW,,2023-11-06,2026-11-06,4,59.3,1264.0,1335.0,USD,True,
+PEN,Agreed acquisition by Boston Scientific ($374/share; ~73% cash / 27% BSX stock) (Pending: shareholders approved 2026-05-06; FTC second request; close expected Q1 2027),2023-11-06,2026-11-06,4,12.5,189.0,175.0,USD,False,Pending takeover: share price is set by the deal terms not the business (60-day daily volatility 0.5% vs ~2% for peers)
+DXCM,,2023-11-06,2026-11-06,4,30.6,912.0,1077.0,USD,True,
+PODD,,2023-11-06,2026-11-06,4,10.3,474.0,350.0,USD,True,
+RMD,,2023-11-06,2026-11-06,4,33.9,1887.0,1629.0,USD,True,
+BAX,Sale of Kidney Care business (now Vantive) to Carlyle for $3.8bn (Completed),2023-11-06,2026-11-06,4,13.3,-308.0,323.0,USD,False,Rule 4: operating loss in the latest year
+TFX,Sale of Acute Care & Interventional Urology (to Intersurgical) and OEM (to Montagu/Kohlberg) businesses for ~$2.0bn (In progress: Acute Care & IU still held for sale at Q3 2026),2023-11-06,2026-11-06,4,6.7,118.0,245.0,USD,True,
+STE,,2023-11-06,2026-11-06,4,24.7,1102.0,972.0,USD,True,
+MASI,Acquired by Danaher ($180/share cash) (Completed; delisted from Nasdaq),,,0,,,,,False,Rule 1: no longer listed
+HOLX,Taken private by Blackstone and TPG ($76/share cash + CVR up to $3) (Completed; delisted from Nasdaq),,,0,,,,,False,Rule 1: no longer listed
+COO,,2023-11-06,2026-11-06,4,12.2,683.0,434.0,USD,True,
+ALGN,,2023-11-06,2026-11-06,4,11.8,546.0,491.0,USD,True,

@@ -75,9 +75,11 @@ def load_close_prices(tickers: list[str], download: bool = True) -> pd.DataFrame
     """
     One table of closing prices: one column per ticker, one row per trading day.
     `download=False` uses the latest saved raw file instead of downloading.
-    Unfinished trading days are removed either way (see drop_unfinished_day).
+    Unfinished trading days are removed either way (see drop_unfinished_day),
+    and an empty last close is filled from the quote feed if possible
+    (see fill_missing_last_close).
     """
-    closes = {}
+    closes, quotes_used = {}, []
     for ticker in tickers:
         if download:
             prices = drop_unfinished_day(download_prices(ticker))
@@ -85,8 +87,52 @@ def load_close_prices(tickers: list[str], download: bool = True) -> pd.DataFrame
             path = latest_raw_path(ticker, "prices")
             written_at = pd.Timestamp(path.stat().st_mtime, unit="s", tz="UTC")
             prices = drop_unfinished_day(pd.read_csv(path, index_col=0, parse_dates=True), written_at)
-        closes[ticker] = prices["Close"]
+        close, quote = fill_missing_last_close(ticker, prices["Close"])
+        if quote:
+            quotes_used.append(quote)
+        closes[ticker] = close
+    if quotes_used:
+        settings.RAW_DIR.mkdir(parents=True, exist_ok=True)
+        pd.DataFrame(quotes_used).to_csv(settings.RAW_DIR / f"quote_closes_downloaded_{_today()}.csv", index=False)
     return pd.DataFrame(closes)
+
+
+def quote_close(ticker: str) -> tuple[float, pd.Timestamp]:
+    """Yahoo's quote feed: last regular-session price and the time it was set (New York time)."""
+    info = yf.Ticker(ticker).info
+    price, ts = info.get("regularMarketPrice"), info.get("regularMarketTime")
+    if price is None or ts is None:
+        return float("nan"), pd.NaT
+    return float(price), pd.Timestamp(ts, unit="s", tz="UTC").tz_convert(settings.MARKET_TIMEZONE)
+
+
+def fill_missing_last_close(ticker: str, close: pd.Series, quote=None) -> tuple[pd.Series, dict | None]:
+    """
+    Found in Session 3: on Saturday 7 Nov 2026 Yahoo's price history returned an
+    empty close for Friday 6 Nov (volume present, prices missing) for every ticker.
+
+    On the most recent day, an adjusted close equals the actual close (adjustment
+    only rescales *earlier* prices), so the gap can be filled from Yahoo's quote
+    feed, a separate system. This is done only if the quote was set on that same
+    day after the market closed; otherwise the empty day is dropped. The quote
+    feed was checked against three known 6 Nov closes (SYK, SPY, IHI): exact match.
+
+    `quote` can be passed in as (price, time) for testing; otherwise it is fetched.
+    Returns the (possibly filled) series and a record of the quote used, or None.
+    """
+    close = close.copy()
+    last_day = close.index[-1]
+    if pd.notna(close.iloc[-1]):
+        return close, None
+    price, ts = quote if quote is not None else quote_close(ticker)
+    close_time = pd.Timestamp(f"{last_day:%Y-%m-%d} 16:00", tz=settings.MARKET_TIMEZONE)
+    if pd.notna(price) and pd.notna(ts) and ts.date() == last_day.date() and ts >= close_time:
+        close.iloc[-1] = price
+        return close, {"ticker": ticker, "date": f"{last_day:%Y-%m-%d}", "close": price,
+                       "quote_time_new_york": f"{ts:%Y-%m-%d %H:%M}", "source": "Yahoo quote feed (regularMarketPrice)"}
+    warnings.warn(f"{ticker}: empty close on {last_day:%Y-%m-%d} and no valid quote to fill it. Day dropped.",
+                  stacklevel=2)
+    return close.iloc[:-1], None
 
 
 # ---------------------------------------------------------------------------
@@ -149,6 +195,27 @@ def download_fred(series: str, save: bool = True) -> pd.Series:
         settings.RAW_DIR.mkdir(parents=True, exist_ok=True)
         raw.to_csv(settings.RAW_DIR / f"FRED_{series}_downloaded_{_today()}.csv")
     return raw.iloc[:, 0] / 100
+
+
+def risk_free_rates(price_start: str = settings.PRICE_START,
+                    valuation_date: str = settings.VALUATION_DATE) -> pd.DataFrame:
+    """
+    3-month T-bill: average over the 3-year price window (it is compared with a
+    3-year average return in the Sharpe ratio).
+    10-year Treasury: latest value on or before the valuation date (for the DCF).
+    Row 0 is the Sharpe rate; row 2 is the DCF rate.
+    """
+    start, vd = pd.Timestamp(price_start), pd.Timestamp(valuation_date)
+    short = download_fred(settings.RISK_FREE_SHORT).loc[start:vd].dropna()
+    long = download_fred(settings.RISK_FREE_LONG).loc[:vd].dropna()
+    return pd.DataFrame([
+        {"rate": "3-month T-bill (Sharpe)", "series": settings.RISK_FREE_SHORT,
+         "value": short.mean(), "basis": f"average {short.index[0]:%d %b %Y} – {short.index[-1]:%d %b %Y}"},
+        {"rate": "3-month T-bill, latest", "series": settings.RISK_FREE_SHORT,
+         "value": short.iloc[-1], "basis": f"as of {short.index[-1]:%d %b %Y}"},
+        {"rate": "10-year Treasury (DCF)", "series": settings.RISK_FREE_LONG,
+         "value": long.iloc[-1], "basis": f"as of {long.index[-1]:%d %b %Y}"},
+    ])
 
 
 # ---------------------------------------------------------------------------

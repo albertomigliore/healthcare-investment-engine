@@ -1,0 +1,2 @@
+ticker,item,fiscal_year_end,value,source,reason
+ISRG,total_debt,2025-12-31,0,ISRG 10-K FY2025 (accession 0001035267-26-000010),No borrowings tagged in the 10-K; balance sheet uses 'Liabilities other than long-term debt'. Yahoo has no debt line after 2021

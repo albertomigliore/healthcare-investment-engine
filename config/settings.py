@@ -116,3 +116,21 @@ SELL_MIN_DOWNSIDE = 0.15       # median value at least 15% below price
 # Data checks
 # ---------------------------------------------------------------------------
 MATCH_TOLERANCE = 0.01         # Yahoo vs 10-K: under 1% difference counts as a match
+
+# Plausibility ranges: a value outside these is not wrong by definition, but it
+# is unusual enough for a large device company that it must be checked by hand.
+PLAUSIBLE_RANGES = {
+    "roic":                  (0.00, 0.40),
+    "fcf_margin":            (0.00, 0.40),
+    "net_debt_to_ebitda":    (-3.0, 5.0),
+    "revenue_cagr":          (-0.10, 0.30),
+    "operating_income_cagr": (-0.25, 0.50),
+    "ev_to_ebitda":          (5.0, 60.0),
+    "fcf_yield":             (0.00, 0.12),
+    "momentum_12_1":         (-0.60, 1.00),
+    "return_vs_sector":      (-0.60, 1.00),
+    "volatility":            (0.10, 0.60),
+    "beta":                  (0.00, 2.00),
+    "max_drawdown":          (-0.70, 0.00),
+}
+MAX_REPORT_AGE_DAYS = 15 * 30  # latest annual report older than ~15 months -> flag

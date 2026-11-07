@@ -55,6 +55,24 @@ def test_derived_items():
     assert latest["net_debt"] == 300                # 400 - 100
 
 
+def test_override_fills_a_gap_but_never_replaces_a_value(tmp_path, monkeypatch):
+    from config import settings
+    (tmp_path / "overrides.csv").write_text(
+        "ticker,item,fiscal_year_end,value,source,reason\n"
+        "TEST,total_debt,2025-12-31,0,10-K,no borrowings\n"
+        "TEST,cash,2025-12-31,999,10-K,should be ignored: Yahoo has a value\n")
+    monkeypatch.setattr(settings, "MANUAL_DIR", tmp_path)
+    s = fake_statements()
+    s["balance"] = s["balance"].drop("Total Debt")
+    table, sources = fundamentals.extract_fundamentals(s)
+    table, notes = fundamentals.apply_overrides("TEST", table, sources)
+    latest = table.iloc[-1]
+    assert latest["total_debt"] == 0                # gap filled
+    assert latest["cash"] == 100                    # existing value untouched
+    assert latest["net_debt"] == -100               # derived item rebuilt
+    assert len(notes) == 1
+
+
 def test_missing_line_stays_missing_and_is_flagged():
     s = fake_statements()
     s["balance"] = s["balance"].drop("Total Debt")

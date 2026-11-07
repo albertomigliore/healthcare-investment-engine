@@ -1,4 +1,4 @@
 rate,series,value,basis
-3-month T-bill (Sharpe),DTB3,0.04328691588785047,average 06 Nov 2023 – 04 Nov 2026
-"3-month T-bill, latest",DTB3,0.0403,as of 04 Nov 2026
-10-year Treasury (DCF),DGS10,0.049,as of 04 Nov 2026
+3-month T-bill (Sharpe),DTB3,0.04328253333333333,average 06 Nov 2023 – 05 Nov 2026
+"3-month T-bill, latest",DTB3,0.04,as of 05 Nov 2026
+10-year Treasury (DCF),DGS10,0.0484,as of 05 Nov 2026

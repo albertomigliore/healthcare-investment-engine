@@ -29,3 +29,37 @@ def test_keeps_last_day_if_downloaded_on_a_later_day():
     p = prices_ending("2026-11-06")
     out = data.drop_unfinished_day(p, pd.Timestamp("2026-11-08 09:00", tz=NY))
     assert len(out) == 3
+
+
+# --- empty last close (Session 3 finding) --------------------------------------
+def close_with_empty_last_day():
+    c = prices_ending("2026-11-06")["Close"]
+    c.iloc[-1] = float("nan")
+    return c
+
+
+def test_fills_empty_last_close_from_a_quote_set_after_the_close():
+    quote = (325.87, pd.Timestamp("2026-11-06 16:03", tz=NY))
+    filled, record = data.fill_missing_last_close("SYK", close_with_empty_last_day(), quote)
+    assert filled.iloc[-1] == 325.87
+    assert record["source"].startswith("Yahoo quote feed")
+
+
+def test_rejects_quote_from_another_day():
+    quote = (330.0, pd.Timestamp("2026-11-09 16:03", tz=NY))    # Monday's price must not fill Friday
+    with pytest.warns(UserWarning):
+        filled, record = data.fill_missing_last_close("SYK", close_with_empty_last_day(), quote)
+    assert filled.index[-1] == pd.Timestamp("2026-11-05") and record is None
+
+
+def test_rejects_quote_set_before_the_close():
+    quote = (320.0, pd.Timestamp("2026-11-06 12:00", tz=NY))
+    with pytest.warns(UserWarning):
+        filled, _ = data.fill_missing_last_close("SYK", close_with_empty_last_day(), quote)
+    assert filled.index[-1] == pd.Timestamp("2026-11-05")
+
+
+def test_leaves_complete_data_alone():
+    c = prices_ending("2026-11-06")["Close"]
+    filled, record = data.fill_missing_last_close("SYK", c, quote=(999.0, pd.Timestamp("2026-11-06 16:03", tz=NY)))
+    assert filled.iloc[-1] == 3.0 and record is None
