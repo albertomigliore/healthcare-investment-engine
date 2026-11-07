@@ -12,7 +12,6 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 RAW_DIR = PROJECT_ROOT / "data" / "raw"              # downloads, never edited
 MANUAL_DIR = PROJECT_ROOT / "data" / "manual"        # numbers typed in from official filings
-PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"  # cleaned, checked data
 CHARTS_DIR = PROJECT_ROOT / "outputs" / "charts"
 TABLES_DIR = PROJECT_ROOT / "outputs" / "tables"
 

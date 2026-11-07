@@ -83,7 +83,7 @@ Source: Stryker 10-K, accession 0000310764-26-000010, filed 11 Feb 2026, via the
 
 ### Session 2: the 12 screening metrics for Stryker, hand-checked ✅
 
-**Reproduce it:** `python -m src.session2`. Every formula with the real numbers plugged in: [outputs/tables/SYK_metrics_workings.md](outputs/tables/SYK_metrics_workings.md).
+**Reproduce it:** `python -m src.session3` (the Session 2 code was folded into Session 3, which runs the same calculation for every company). Every formula with the real numbers plugged in: [outputs/tables/workings/SYK.md](outputs/tables/workings/SYK.md).
 
 | Group | Metric | Workings ($ millions) | Stryker |
 |---|---|---|---|
@@ -581,16 +581,14 @@ healthcare-investment-engine/
 │   └── settings.py    # every choice in one place: tickers, dates, weights, decision rule
 ├── data/
 │   ├── raw/           # downloads exactly as received (never edited)
-│   ├── manual/        # hand-checked facts, each with its source: 10-K figures, corporate events,
-│   │                  #   SEC company numbers, overrides
-│   └── processed/     # cleaned, checked data
+│   └── manual/        # hand-checked facts, each with its source: 10-K figures, corporate events,
+│                      #   SEC company numbers, overrides
 ├── src/
 │   ├── data.py        # downloading, saving and loading data
 │   ├── fundamentals.py     # picks the needed lines out of the statements, records the label used
 │   ├── metrics.py          # the formulas, one small function each
 │   ├── company_metrics.py  # the 12 metrics for one company, with workings
 │   ├── session1.py         # Session 1 pipeline: python -m src.session1
-│   ├── session2.py         # Session 2 pipeline: python -m src.session2
 │   ├── universe.py         # eligibility rules: who is in the screen and why
 │   ├── sec.py              # cross-check with each company's 10-K; restatement detection
 │   ├── report.py           # writes the hand-check documents
@@ -600,7 +598,7 @@ healthcare-investment-engine/
 │   ├── session5.py         # ranking, robustness, finalists, chart: python -m src.session5
 │   ├── valuation.py        # WACC, DCF, reverse DCF, comparables, Monte Carlo, decision rule
 │   └── session6.py         # Sessions 6-8: value the finalists: python -m src.session6
-├── notebooks/         # exploring and checking one company step by step
+├── notebooks/         # first hands-on exploration of Stryker (Session 1), kept as a record
 ├── outputs/
 │   ├── charts/        # final charts
 │   └── tables/        # ranking, valuations, simulations
