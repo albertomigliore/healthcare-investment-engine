@@ -170,3 +170,24 @@ def test_beta_of_unrelated_stock_is_near_zero():
 def test_annualised_return_over_exactly_two_years():
     p = pd.Series([100.0, 121.0], index=pd.to_datetime(["2023-01-01", "2025-01-01"]))
     assert metrics.annualised_return(p) == pytest.approx(0.10, abs=1e-3)
+
+
+# --- Rolling (moving-window) risk -------------------------------------------
+def test_rolling_volatility_is_zero_for_steady_growth_and_missing_before_window():
+    steady = make_prices(100 * 1.001 ** np.arange(300))
+    vol = metrics.rolling_volatility(steady, window=252)
+    assert vol.iloc[:252].isna().all()                  # needs a full year of data first
+    assert vol.iloc[-1] == pytest.approx(0.0, abs=1e-9)
+
+
+def test_rolling_volatility_last_value_matches_last_year():
+    p = random_walk(5, n=400)
+    last_year = p.iloc[-253:]
+    assert metrics.rolling_volatility(p, 252).iloc[-1] == pytest.approx(metrics.annualised_volatility(last_year))
+
+
+def test_rolling_sharpe_matches_definition():
+    p = random_walk(6, n=400)
+    rf = pd.Series(0.04, index=p.index)
+    expected = (p.iloc[-1] / p.iloc[-253] - 1 - 0.04) / metrics.annualised_volatility(p.iloc[-253:])
+    assert metrics.rolling_sharpe(p, rf, 252).iloc[-1] == pytest.approx(expected)

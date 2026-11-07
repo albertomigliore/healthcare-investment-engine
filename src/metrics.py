@@ -225,6 +225,25 @@ def sharpe_ratio(prices: pd.Series, risk_free_rate: float, periods_per_year: int
     return (annualised_return(prices) - risk_free_rate) / annualised_volatility(prices, periods_per_year)
 
 
+def rolling_volatility(prices: pd.Series, window: int = 252, periods_per_year: int = 252) -> pd.Series:
+    """
+    Volatility over a moving window: for each day, the yearly volatility of the
+    previous `window` trading days. Shows WHEN risk rose or fell.
+    """
+    return prices.pct_change().rolling(window).std() * np.sqrt(periods_per_year)
+
+
+def rolling_sharpe(prices: pd.Series, risk_free: pd.Series, window: int = 252) -> pd.Series:
+    """
+    Sharpe ratio over a moving 12-month window: for each day,
+    (return over the previous 12 months - average risk-free rate over those months)
+    / volatility over those months. `risk_free` is a daily series of yearly rates.
+    """
+    past_year_return = prices / prices.shift(window) - 1
+    rf = risk_free.reindex(prices.index).ffill().rolling(window).mean()
+    return (past_year_return - rf) / rolling_volatility(prices, window)
+
+
 def drawdown(prices: pd.Series) -> pd.Series:
     """
     For every day: how far the price is below its highest point so far.

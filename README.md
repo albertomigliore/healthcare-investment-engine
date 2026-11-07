@@ -191,6 +191,9 @@ All events and sources: [data/manual/corporate_events.csv](data/manual/corporate
 ![Volatility and Sharpe ratio per company](outputs/charts/05_volatility_sharpe.png)
 
 - **Volatility and Sharpe ratio** ([risk_return.csv](outputs/tables/risk_return.csv)): no device company came close to the S&P 500's risk-adjusted return over the three years (Sharpe 1.05; best device company Medtronic 0.50), and 8 of the 17 had a negative Sharpe ratio, i.e. returned less than a risk-free deposit. DexCom, despite +44% in the last year, has a negative 3-year Sharpe (−0.22) with the highest volatility in the universe (47%).
+- **Risk over time** ([rolling_risk.csv](outputs/tables/rolling_risk.csv); one chart per finalist, e.g. [DexCom](outputs/charts/06_risk_over_time_DXCM.png), [ResMed](outputs/charts/06_risk_over_time_RMD.png), [Globus](outputs/charts/06_risk_over_time_GMED.png); every company in the interactive report): volatility and the Sharpe ratio measured over a moving 12-month window show *when* risk changed. A moving window has a side effect worth knowing: DexCom fell 40.7% on 26 July 2024, and that single day kept its 12-month volatility high until 30 July 2025, when it left the window and the figure dropped 17 points in a day.
+
+![DexCom: price, volatility and Sharpe ratio over time](outputs/charts/06_risk_over_time_DXCM.png)
 
 ### Session 5: the ranking, and how robust it is ✅
 

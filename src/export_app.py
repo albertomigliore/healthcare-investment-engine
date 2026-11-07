@@ -87,6 +87,16 @@ def main() -> None:
     sector_of = {t: g for g, ts in settings.UNIVERSE.items() for t in ts}
     finalists = pd.read_csv(T / "finalists.csv", index_col=0).index.tolist()
     risk_return = pd.read_csv(T / "risk_return.csv", index_col=0)      # from Session 4
+    # Rolling risk, sampled weekly (Friday closes) to keep the page light
+    rolling = pd.read_csv(T / "rolling_risk.csv", index_col=0, parse_dates=True).resample("W-FRI").last()
+    roll_tickers = list(pd.read_csv(T / "ranking.csv", index_col=0).index) + \
+        [settings.MARKET_BENCHMARK, settings.SECTOR_BENCHMARK]
+    rolling_payload = {
+        "dates": [d.strftime("%Y-%m-%d") for d in rolling.index],
+        "series": {t: {"p": rolling[f"{t}_price_index"].round(2).tolist(),
+                       "v": rolling[f"{t}_volatility_12m"].round(4).tolist(),
+                       "s": rolling[f"{t}_sharpe_12m"].round(3).tolist()} for t in roll_tickers},
+    }
 
     companies = []
     for t in ranking.index:
@@ -137,6 +147,7 @@ def main() -> None:
                      "terminal_growth": settings.TERMINAL_GROWTH, "years": settings.FORECAST_YEARS,
                      "n_sims": settings.N_SIMULATIONS, "weight_spread": settings.WEIGHT_SPREAD},
         "rates": rates.to_dict(orient="records"),
+        "rolling": rolling_payload,
         "benchmarks": [{"ticker": t, "name": n, **risk_return.loc[t, ["annual_return", "volatility", "sharpe"]].to_dict()}
                        for t, n in [(settings.MARKET_BENCHMARK, "S&P 500"), (settings.SECTOR_BENCHMARK, "Device sector (IHI)")]],
         "companies": companies, "excluded": excluded, "finalists": finalists, "valuations": valuations,

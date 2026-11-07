@@ -197,6 +197,15 @@ def download_fred(series: str, save: bool = True) -> pd.Series:
     return raw.iloc[:, 0] / 100
 
 
+def load_fred(series: str) -> pd.Series:
+    """The latest saved FRED download for a series, as a decimal (no new download)."""
+    files = sorted(settings.RAW_DIR.glob(f"FRED_{series}_downloaded_*.csv"))
+    if not files:
+        return download_fred(series)
+    raw = pd.read_csv(files[-1], index_col=0, parse_dates=True, na_values=".")
+    return raw.iloc[:, 0] / 100
+
+
 def risk_free_rates(price_start: str = settings.PRICE_START,
                     valuation_date: str = settings.RATES_AS_OF) -> pd.DataFrame:
     """

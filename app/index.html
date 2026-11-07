@@ -221,6 +221,18 @@ footer { border-top: 1px solid var(--border); padding: 28px 0 56px; color: var(-
     <div class="box"><svg class="chart" id="volsharpe" viewBox="0 0 760 520" role="img" aria-label="Volatility and Sharpe ratio for each company"></svg></div>
     <figcaption id="volsharpe-cap"></figcaption>
   </figure>
+  <div class="prose">
+    <h3>Risk over time</h3>
+    <p>The figures above summarise three years in one number. Measured over a moving 12-month window instead, volatility and the Sharpe ratio show <em>when</em> risk rose or fell: at each date, they are calculated from the previous 12 months only. The curves therefore start in November 2024, one year after the price series.</p>
+    <p>A moving window has a side effect worth knowing: a single extreme day stays in the 12-month figures for exactly one year and then drops out all at once. DexCom fell 40.7% on 26 July 2024; its 12-month volatility stayed high until 30 July 2025, when that day left the window and the figure fell by 17 points in a day. Select a company to compare it with the S&amp;P 500 and the device sector; hover over the chart to read the values at any date.</p>
+  </div>
+  <figure>
+    <div class="box">
+      <label class="small muted">Company <select id="rt-select" aria-label="Company"></select></label>
+      <svg class="chart" id="risktime" viewBox="0 0 760 560" role="img" aria-label="Price, 12-month volatility and 12-month Sharpe ratio over time"></svg>
+    </div>
+    <figcaption id="risktime-cap"></figcaption>
+  </figure>
 </section>
 
 <section id="valuation">
@@ -253,12 +265,12 @@ footer { border-top: 1px solid var(--border); padding: 28px 0 56px; color: var(-
         <div class="stat"><div class="k">Decision</div><div class="v" id="s-dec">–</div><div class="s" id="s-n">&nbsp;</div></div>
       </div>
       <svg class="chart" id="hist" viewBox="0 0 720 260" role="img" aria-label="Histogram of simulated values per share"></svg>
-      <div class="cap"><b>Figure 4.</b> Distribution of simulated values per share. Runs above the share price (dashed line) are shown in blue; the solid line is the median.</div>
+      <div class="cap"><b>Figure 5.</b> Distribution of simulated values per share. Runs above the share price (dashed line) are shown in blue; the solid line is the median.</div>
       <div class="twocol" style="margin-top:20px">
         <div><svg class="chart" id="conv" viewBox="0 0 360 170"></svg>
-          <div class="cap"><b>Figure 5.</b> Estimated probability that the value exceeds the price, as runs accumulate. The shaded band is the 95% sampling interval, which narrows in proportion to 1/√n.</div></div>
+          <div class="cap"><b>Figure 6.</b> Estimated probability that the value exceeds the price, as runs accumulate. The shaded band is the 95% sampling interval, which narrows in proportion to 1/√n.</div></div>
         <div><svg class="chart" id="tornado" viewBox="0 0 360 170"></svg>
-          <div class="cap"><b>Figure 6.</b> Value per share with each assumption at the low and high end of its range and the others at the base case.</div></div>
+          <div class="cap"><b>Figure 7.</b> Value per share with each assumption at the low and high end of its range and the others at the base case.</div></div>
       </div>
       <div class="explain" id="explain"></div>
       <div class="runs" id="runs"></div>
@@ -425,6 +437,78 @@ function renderVolSharpe() {
   $("#volsharpe-cap").innerHTML = `<b>Figure 2.</b> Volatility and Sharpe ratio over three years (November 2023 to November 2026), ordered by Sharpe ratio; finalists in blue. Dashed lines mark the S&amp;P 500 (Sharpe ${bm.SPY.sharpe.toFixed(2)}) and the device-sector fund (${bm.IHI.sharpe.toFixed(2)}). The best device company, ${esc(best.name)}, reached ${best.sharpe.toFixed(2)}; ${neg} of the 17 had a negative Sharpe ratio, i.e. returned less than a risk-free deposit.`;
 }
 
+
+const RT = { W: 760, l: 56, r: 64, panels: [
+  { key: "p", label: "Value of $100 invested", top: 56, h: 170, fmt: v => v.toFixed(0) },
+  { key: "v", label: "Volatility, past 12 months", top: 258, h: 130, fmt: v => pct(v, 0) },
+  { key: "s", label: "Sharpe ratio, past 12 months", top: 420, h: 130, fmt: v => v.toFixed(2) } ] };
+const RT_LINES = [
+  { id: "SPY", name: "S&P 500", stroke: "#0c0a09", dash: "4 3", width: 1.2 },
+  { id: "IHI", name: "Device sector", stroke: "#a8a29e", dash: "", width: 1.4 },
+];
+
+function renderRiskTime(ticker) {
+  const R = APP.rolling, dates = R.dates.map(d => new Date(d)), n = dates.length;
+  const x = i => RT.l + i / (n - 1) * (RT.W - RT.l - RT.r);
+  const lines = [...RT_LINES, { id: ticker, name: byTicker[ticker].name, stroke: "#3ba6f1", dash: "", width: 2.2 }];
+  let s = "";
+  RT.panels.forEach(pn => {
+    const vals = lines.flatMap(L => R.series[L.id][pn.key]).filter(v => v != null);
+    let lo = Math.min(...vals), hi = Math.max(...vals);
+    if (pn.key === "v") lo = 0;
+    const pad = (hi - lo) * 0.08; lo -= pn.key === "v" ? 0 : pad; hi += pad;
+    const y = v => pn.top + pn.h - (v - lo) / (hi - lo) * pn.h;
+    pn.y = y;
+    s += `<text class="ink" x="${RT.l}" y="${pn.top - 10}">${pn.label}</text>`;
+    niceTicks(lo, hi, 4).forEach(tk => {
+      s += `<line x1="${RT.l}" x2="${RT.W - RT.r}" y1="${y(tk)}" y2="${y(tk)}" stroke="${(pn.key === "s" && Math.abs(tk) < 1e-9) || (pn.key === "p" && tk === 100) ? "#a8a29e" : "#f0efee"}"/>
+        <text x="${RT.l - 6}" y="${y(tk) + 4}" text-anchor="end">${pn.key === "v" ? pct(tk, 0) : pn.key === "p" ? tk.toFixed(0) : tk.toFixed(1)}</text>`;
+    });
+    const ends = [];
+    lines.forEach(L => {
+      const arr = R.series[L.id][pn.key];
+      let d = "", pen = false;
+      arr.forEach((v, i) => { if (v == null) { pen = false; return; } d += `${pen ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`; pen = true; });
+      s += `<path d="${d}" fill="none" stroke="${L.stroke}" stroke-width="${L.width}" ${L.dash ? `stroke-dasharray="${L.dash}"` : ""}/>`;
+      const last = arr[arr.length - 1];
+      if (last != null) ends.push({ y: y(last), text: pn.fmt(last), ink: L.id === ticker });
+    });
+    ends.sort((a, b) => a.y - b.y);
+    for (let k = 1; k < ends.length; k++) ends[k].y = Math.max(ends[k].y, ends[k - 1].y + 12);
+    ends.forEach(e => { s += `<text x="${RT.W - RT.r + 4}" y="${e.y + 4}" class="${e.ink ? "ink" : ""}">${e.text}</text>`; });
+  });
+  // date axis (shared)
+  const yAxis = RT.panels[2].top + RT.panels[2].h + 16;
+  dates.forEach((d, i) => { if (d.getMonth() % 6 === 0 && d.getDate() <= 7) s += `<text x="${x(i)}" y="${yAxis}" text-anchor="middle">${d.toLocaleDateString("en-GB", { month: "short", year: "numeric" })}</text>`; });
+  // legend
+  s += lines.slice().reverse().map((L, k) => `<line x1="${RT.l + 150 * k}" x2="${RT.l + 150 * k + 22}" y1="6" y2="6" stroke="${L.stroke}" stroke-width="${L.width + 0.4}" ${L.dash ? `stroke-dasharray="${L.dash}"` : ""}/><text x="${RT.l + 150 * k + 28}" y="10" class="ink">${esc(L.name)}</text>`).join("");
+  // hover layer
+  s += `<line id="rt-cross" x1="0" x2="0" y1="${RT.panels[0].top - 6}" y2="${RT.panels[2].top + RT.panels[2].h}" stroke="#78716c" stroke-width="1" opacity="0"/>
+    <rect id="rt-hit" x="${RT.l}" y="${RT.panels[0].top - 6}" width="${RT.W - RT.l - RT.r}" height="${RT.panels[2].top + RT.panels[2].h - RT.panels[0].top + 6}" fill="transparent"/>`;
+  const svg = $("#risktime");
+  svg.setAttribute("viewBox", `0 0 ${RT.W} ${yAxis + 8}`);
+  svg.innerHTML = s;
+  const hit = $("#rt-hit"), cross = $("#rt-cross");
+  hit.onmousemove = e => {
+    const box = svg.getBoundingClientRect(), sx = (e.clientX - box.left) / box.width * RT.W;
+    const i = Math.max(0, Math.min(n - 1, Math.round((sx - RT.l) / (RT.W - RT.l - RT.r) * (n - 1))));
+    cross.setAttribute("x1", x(i)); cross.setAttribute("x2", x(i)); cross.setAttribute("opacity", 1);
+    const row = L => { const S = R.series[L.id]; return `${esc(L.name)}: ${S.p[i] == null ? "–" : S.p[i].toFixed(0)} · vol ${S.v[i] == null ? "–" : pct(S.v[i], 0)} · Sharpe ${S.s[i] == null ? "–" : S.s[i].toFixed(2)}`; };
+    showTip(e, `<b>${dates[i].toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</b><br>${lines.slice().reverse().map(row).join("<br>")}`);
+  };
+  hit.onmouseleave = () => { cross.setAttribute("opacity", 0); hideTip(); };
+  const S = R.series[ticker], last = S.v.length - 1, c = byTicker[ticker];
+  $("#risktime-cap").innerHTML = `<b>Figure 3.</b> ${esc(c.name)} against the S&amp;P 500 (dashed) and the device-sector fund (grey), weekly. Top: value of $100 invested in November 2023. Middle and bottom: volatility and Sharpe ratio measured over the previous 12 months at each date. Latest values: volatility ${pct(S.v[last], 0)} (three-year figure ${pct(c.volatility, 0)}), Sharpe ratio ${S.s[last].toFixed(2)} (three-year figure ${c.sharpe.toFixed(2)}).`;
+}
+
+function initRiskTime() {
+  const sel = $("#rt-select");
+  sel.innerHTML = APP.companies.map(c => `<option value="${c.ticker}">${esc(c.name)}</option>`).join("");
+  sel.value = "DXCM";
+  sel.onchange = () => renderRiskTime(sel.value);
+  renderRiskTime(sel.value);
+}
+
 // ---------------------------------------------------------------- valuation (fixed model results)
 let current = APP.finalists[0];
 function renderSegs() {
@@ -468,7 +552,7 @@ function renderValuation(t) {
   $("#val-panel").innerHTML = `
     <div class="prose"><h3 style="margin-top:4px">${esc(c.name)}</h3><p>${esc(c.what)} ${esc(v.reasoning)} <a href="${esc(v.source)}" target="_blank" rel="noopener">Source</a>.</p></div>
     <figure><div class="box"><svg class="chart" viewBox="0 0 760 232" role="img" aria-label="Value per share by method">${football(t, compsValues(t))}</svg></div>
-      <figcaption><b>Figure 3.</b> ${esc(c.name)}: value per share by method, compared with the price of ${usd(v.price)} (dashed). Comparables show the 25th–75th percentile of peers; the DCF bar spans the bear and bull cases; the Monte Carlo bar spans the 10th–90th percentile of 10,000 runs. Ticks mark the median or base case.</figcaption></figure>
+      <figcaption><b>Figure 4.</b> ${esc(c.name)}: value per share by method, compared with the price of ${usd(v.price)} (dashed). Comparables show the 25th–75th percentile of peers; the DCF bar spans the bear and bull cases; the Monte Carlo bar spans the 10th–90th percentile of 10,000 runs. Ticks mark the median or base case.</figcaption></figure>
     <div class="twocol">
       <figure style="margin-top:0"><div class="box"><dl class="kv">${inputs.map(([label, k]) => `<dt>${label}</dt><dd>${esc(String(r[k]).split(" (")[0])}</dd>`).join("")}</dl></div>
         <figcaption><b>Table 4.</b> Main DCF inputs. Full workings in outputs/tables/valuation_${t}.md.</figcaption></figure>
@@ -717,7 +801,7 @@ function drawFinal(t, res) {
     : `With ${int(res.nFinite)} runs the probability is estimated to within ±${pct(1.96 * se, 1)} at 95% confidence.`;
   const topName = top.name === "WACC" ? "the WACC" : top.name.toLowerCase();
   $("#explain").innerHTML = `<p>In ${pct(res.pAbove, 0)} of the ${int(res.n)} runs, ${esc(c.name)}'s value per share exceeds the price of ${usd(v.price)}. The median value is ${usd(res.median)}, ${spct(res.median / v.price - 1)} relative to the price, and 80% of values lie between ${usd(res.p10, 0)} and ${usd(res.p90, 0)}. Under the decision rule the result is <b>${res.decision}</b>, because ${why}.</p>
-    <p style="margin-bottom:0">The value is most sensitive to ${topName}: across its range (${top.range}) the value per share moves from ${usd(Math.min(top.lo, top.hi), 0)} to ${usd(Math.max(top.lo, top.hi), 0)} (Figure 6). ${precision}
+    <p style="margin-bottom:0">The value is most sensitive to ${topName}: across its range (${top.range}) the value per share moves from ${usd(Math.min(top.lo, top.hi), 0)} to ${usd(Math.max(top.lo, top.hi), 0)} (Figure 7). ${precision}
     ${changed.length ? `<br><span class="muted">Settings changed from the model: ${changed.join(", ")}. With the model's own settings the decision is ${v.python.decision}.</span>` : `<br><span class="muted">These are the model's own settings; the Python pipeline gives the same decision (${v.python.decision}, median ${usd(v.python.mc_median, 0)}).</span>`}</p>`;
 }
 
@@ -735,7 +819,7 @@ function tocSpy() {
 }
 
 const initialHash = new URLSearchParams(location.hash.slice(1));
-renderHeader(); renderSummary(); renderExcluded(); renderRanking(); renderRobustness(); renderVolSharpe(); renderSegs(); renderFooter();
+renderHeader(); renderSummary(); renderExcluded(); renderRanking(); renderRobustness(); renderVolSharpe(); initRiskTime(); renderSegs(); renderFooter();
 selectFinalist(APP.finalists[0]);
 tocSpy();
 (function route() {
