@@ -198,7 +198,7 @@ def download_fred(series: str, save: bool = True) -> pd.Series:
 
 
 def risk_free_rates(price_start: str = settings.PRICE_START,
-                    valuation_date: str = settings.VALUATION_DATE) -> pd.DataFrame:
+                    valuation_date: str = settings.RATES_AS_OF) -> pd.DataFrame:
     """
     3-month T-bill: average over the 3-year price window (it is compared with a
     3-year average return in the Sharpe ratio).

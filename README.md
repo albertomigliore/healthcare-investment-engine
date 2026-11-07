@@ -8,15 +8,17 @@
 - Globus and ResMed are priced for almost exactly the growth they guide to (implied 5.1% and 7.1% vs ~5% and ~7%).
 - DexCom's price needs ~28% growth next year vs 12–13% guided.
 
-→ **[Investment memo](reports/investment_memo.md)** · [Ranking chart](outputs/charts/02_ranking.png) · [Valuation chart](outputs/charts/03_valuation_ranges.png)
+→ **[Investment memo](reports/investment_memo.md)** · **Interactive Monte Carlo lab: open [app/index.html](app/index.html) in a browser** · [Ranking chart](outputs/charts/02_ranking.png) · [Valuation chart](outputs/charts/03_valuation_ranges.png)
+
+**The interactive lab** ([app/](app/)): every company opens to show its 12 metrics explained in plain English. For each finalist you can move the assumptions (growth, margin, discount rate, uncertainty) and watch 10,000 simulated futures fill a histogram live. It shows convergence with its sampling error, a sensitivity tornado and a written explanation of the result. The browser engine is a line-for-line JavaScript port of the Python model, tested to match it to the cent.
 
 **Why the numbers can be trusted**
 - Every rule was fixed before seeing results, and the decision log (section 12) records every choice, including two declared method changes.
 - Every company's revenue and operating profit were cross-checked against its own SEC 10-K (34/34 match).
 - 12 data problems were found and fixed: an intraday price disguised as a close, restated revenue, a spin-off recorded as a stock split, a pending takeover pinning a share price, and more.
-- 79 automatic tests.
+- 80 automatic tests, including a check that the browser engine reproduces the Python valuation.
 
-**Run it:** `pip install -r requirements.txt`, then `python -m src.session3` (data and metrics), `python -m src.session5` (ranking), `python -m src.session6` (valuation), `python -m pytest` (tests). Python · pandas · NumPy · SciPy · matplotlib · yfinance · SEC XBRL API · FRED.
+**Run it:** `pip install -r requirements.txt`, then `python -m src.session3` (data and metrics), `python -m src.session5` (ranking), `python -m src.session6` (valuation), `python -m src.export_app` (data for the interactive lab), `python -m pytest` (tests). Python · pandas · NumPy · SciPy · matplotlib · yfinance · SEC XBRL API · FRED.
 
 > *A learning project, not investment advice.* Below: the results session by session, then the original plan, which was written before any data was looked at.
 
@@ -99,7 +101,7 @@ Source: Stryker 10-K, accession 0000310764-26-000010, filed 11 Feb 2026, via the
 | Risk | Max drawdown | $268.90 (24 Sep 2026) ÷ $398.20 (25 Jul 2025) − 1 | **−32.5%** |
 | *Reported* | Sharpe ratio | (6.6% yearly return − 4.3% avg. T-bill) ÷ 25.1% | *0.09* |
 
-Price: close of 6 Nov 2026. Financials: FY2025. Cash = cash + short-term investments (4,011 + 89; Session 3 decision). Tax rate: 3-year pooled effective rate. Risk-free rates from FRED ([outputs/tables/risk_free_rates.csv](outputs/tables/risk_free_rates.csv)): 3-month T-bill averaged 4.33% over the 3 years; 10-year Treasury 4.90% (4 Nov 2026, the latest published before the valuation date).
+Price: close of 6 Nov 2026. Financials: FY2025. Cash = cash + short-term investments (4,011 + 89; Session 3 decision). Tax rate: 3-year pooled effective rate. Risk-free rates from FRED ([outputs/tables/risk_free_rates.csv](outputs/tables/risk_free_rates.csv)): 3-month T-bill averaged 4.33% over the 3 years; 10-year Treasury 4.84% (5 Nov 2026). FRED publishes with a one-day lag: when this session first ran, the latest value was 4.90% (4 Nov); the rate date is now pinned to 5 Nov in `config/settings.py` so every re-run gives the same answer.
 
 **How the numbers were checked**
 - **By hand:** every row above can be recomputed with a calculator from the workings column.
@@ -253,7 +255,7 @@ Group scores are 0–100 (average percentile rank of the group's metrics). Total
 
 **How the valuation was built (method fixed before computing any value)**
 - **DCF:** unlevered free cash flow = EBIT × (1 − tax) + D&A − capex − change in working capital; 10-year forecast; growth fades in equal steps from guidance to 2.5% terminal growth; terminal value by the Gordon growth formula.
-- **WACC:** CAPM cost of equity = 10-year Treasury (4.90%) + adjusted beta × 5.0% equity risk premium; beta = 0.67 × measured 3-year weekly beta + 0.33 (Blume adjustment); cost of debt = Treasury + 1%, after tax; market-value weights.
+- **WACC:** CAPM cost of equity = 10-year Treasury (4.84%, 5 Nov 2026, pinned) + adjusted beta × 5.0% equity risk premium; beta = 0.67 × measured 3-year weekly beta + 0.33 (Blume adjustment); cost of debt = Treasury + 1%, after tax; market-value weights.
 - **Base-case inputs** from each company's own guidance and history, with sources: [data/manual/valuation_assumptions.csv](data/manual/valuation_assumptions.csv).
 - **Scenarios:** identical shocks for every company (bear: growth −3 pts, EBITDA margin −3 pts, WACC +1 pt, terminal growth 2.0%; bull: the opposite, 3.0%), so no company gets a softer bear case.
 - **Monte Carlo:** 10,000 DCFs; growth, margin and WACC drawn from a triangle between bear and bull (base most likely), terminal growth uniform 2–3%; fixed seed.
@@ -539,6 +541,7 @@ Every change, with the reason. This shows the thinking behind the project.
 | 7 Nov 2026 | Hand-checked values may fill gaps only, from the 10-K, with the filing number (`data/manual/overrides.csv`) | Intuitive Surgical has no debt but Yahoo has no debt line; a gap must not silently become zero, but a verified zero is a fact |
 | 7 Nov 2026 | If a company whose latest annual report includes since-separated businesses (BDX, TFX) reaches the top 3, it is re-measured on post-separation figures before valuation | Its price and its annual figures describe different companies. Rule fixed before the ranking exists |
 | 7 Nov 2026 | An empty last close may be filled from Yahoo's quote feed only if the quote was set after the close on that day | Yahoo's history returned blanks for 6 Nov; the quote feed matched three known closes exactly |
+| 8 Nov 2026 | Risk-free rates pinned to 5 Nov 2026 (latest FRED value published before the valuation date) | FRED publishes a day late, so the "latest" value changed between runs (4.90% on 6 Nov, 4.84% on 7 Nov) and would change again on Monday. Results must not depend on the day the code is run |
 | 7 Nov 2026 | SEC company numbers (CIKs) stored in a file, each verified against the company's registered name | The SEC's ticker list requires a personal contact email to download automatically |
 | 7 Nov 2026 | Percentile rank = share of the other companies beaten (best = 100, worst = 0); ties share the average | Simple to explain, and one extreme value (Insulet's 133% profit growth) can't dominate |
 | 7 Nov 2026 | Robustness: each weight drawn uniformly within ±10 points, then all rescaled to 100%; 10,000 runs, seed 42 | Matches the plan in section 8; the seed makes the result reproducible |
@@ -601,6 +604,8 @@ healthcare-investment-engine/
 ├── outputs/
 │   ├── charts/        # final charts
 │   └── tables/        # ranking, valuations, simulations
+├── app/               # interactive lab: index.html (open in a browser), engine.js (JS port of the model),
+│                      #   data.js (generated by src/export_app.py), engine.test.js (parity with Python)
 ├── reports/           # the investment memo
 └── tests/             # automatic checks on the formulas: python -m pytest
 ```

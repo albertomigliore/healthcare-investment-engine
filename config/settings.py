@@ -57,6 +57,8 @@ SECTOR_BENCHMARK = "IHI"       # US medical devices ETF, used for relative momen
 # ---------------------------------------------------------------------------
 RISK_FREE_SHORT = "DTB3"       # 3-month Treasury bill: for the Sharpe ratio
 RISK_FREE_LONG = "DGS10"       # 10-year Treasury yield: for the DCF (Session 6)
+RATES_AS_OF = "2026-11-05"     # latest FRED value published before the valuation date (FRED lags a day);
+                              # pinned so re-runs are reproducible (4.90% on 4 Nov, 4.84% on 5 Nov)
 
 # ---------------------------------------------------------------------------
 # Tax rate used in ROIC
