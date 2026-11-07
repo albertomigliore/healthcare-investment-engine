@@ -1,6 +1,6 @@
 # MedTech Investment Research Engine
 
-> **Status:** Sessions 1–5 of 9 complete. 17 companies screened on 12 checked metrics; the ranking survives 10,000 random weightings. **Finalists for the valuation: Globus Medical, ResMed and DexCom.** See [Progress and findings](#progress-and-findings).
+> **Status:** Sessions 1–8 of 9 complete. **Verdict: Globus Medical HOLD, ResMed HOLD, DexCom SELL.** The two top-ranked bargains turn out to be fairly priced, and the market is paying for growth at DexCom that its own guidance doesn't support. Memo in progress. See [Progress and findings](#progress-and-findings).
 > This page is the plan: every choice is written down *before* looking at results, so the conclusion can't be bent to fit a favourite company.
 
 ---
@@ -205,6 +205,48 @@ Group scores are 0–100 (average percentile rank of the group's metrics). Total
 - **Globus Medical:** top-3 on Growth and Value: 42% revenue growth at only 12.1x EV/EBITDA. *But most of that growth came from buying NuVasive in 2023.* Is it cheap because the market sees through the bought growth?
 - **ResMed:** the all-rounder: high quality (25.8% ROIC, 28.8% FCF margin), reasonable price (15.6x), no weak group. *Does its 10% growth justify more than 15.6x?*
 - **DexCom:** the highest quality in the universe (33.2% ROIC) and the best momentum (+43.7%), but expensive (25.7x) and the most volatile (46.6%). *How much growth is already in the price?* That is exactly what the reverse DCF measures.
+
+
+### Sessions 6–8: valuing the finalists, and the decision ✅
+
+**Reproduce it:** `python -m src.session6`. Full workings per company (every input, the 10-year forecast table, every result, so the DCF can be rebuilt by hand in a spreadsheet): [Globus](outputs/tables/valuation_GMED.md), [ResMed](outputs/tables/valuation_RMD.md), [DexCom](outputs/tables/valuation_DXCM.md). Summary: [valuation_summary.csv](outputs/tables/valuation_summary.csv).
+
+![Value per share by method vs price](outputs/charts/03_valuation_ranges.png)
+
+| | Globus Medical | ResMed | DexCom |
+|---|---|---|---|
+| Price (6 Nov 2026) | $71.05 | $235.30 | $79.41 |
+| WACC | 8.9% | 8.6% | 9.8% |
+| DCF: bear / **base** / bull | $47 / **$71** / $114 | $158 / **$234** / $373 | $28 / **$42** / $67 |
+| Comparables, EV/EBITDA (median of peers) | $110 | $279 | $55 |
+| Comparables, EV/Sales (median of peers) | $107 | $178 | $55 |
+| Base-case year-1 growth (guidance) | 5.0% | 7.0% | 12.5% |
+| **Reverse DCF: growth the price implies** | **5.1%** | **7.1%** | **28.0%** |
+| Monte Carlo median (10th–90th pct.) | $71 ($63–81) | $234 ($207–267) | $42 ($37–48) |
+| P(value > price) | 47% | 47% | 0% |
+| **Decision (rule fixed in advance)** | **HOLD** | **HOLD** | **SELL** |
+
+![Monte Carlo distributions](outputs/charts/04_monte_carlo.png)
+
+**What the valuation says**
+- **Globus Medical: "cheap for a reason".** It trades far below its peers (comparables suggest $107–110), which is why the screen loved it. But the screen's 42% growth was bought (NuVasive, Nevro); on its own the business is guided to grow ~5% in 2026, and Q3 sales fell 0.7%. **The price implies 5.1% growth, almost exactly the guidance.** The market isn't missing anything.
+- **ResMed: fairly priced.** The price implies 7.1% year-1 growth vs 7% core growth last quarter: the market has it right. A great business (28.8% FCF margin) at a fair price is a HOLD, not a BUY.
+- **DexCom: the market expects far more than the company promises.** To justify $79 the DCF needs ~28% growth next year (16% a year for 10 years), against guidance of 12–13%. Every method lands below the price, comparables included ($49–73). The SELL survives even stacking three generous assumptions at once (adding back share-based pay, no extra capex for new plants, WACC 8.5%): $66.79, still below the SELL threshold of $67.50.
+- **The lesson of the project:** a screen finds companies that *look* attractive on past numbers; the valuation asks what the price already assumes about the future. Two of three "winners" were already priced correctly.
+
+**How the valuation was built (method fixed before computing any value)**
+- **DCF:** unlevered free cash flow = EBIT × (1 − tax) + D&A − capex − change in working capital; 10-year forecast; growth fades in equal steps from guidance to 2.5% terminal growth; terminal value by the Gordon growth formula.
+- **WACC:** CAPM cost of equity = 10-year Treasury (4.90%) + adjusted beta × 5.0% equity risk premium; beta = 0.67 × measured 3-year weekly beta + 0.33 (Blume adjustment); cost of debt = Treasury + 1%, after tax; market-value weights.
+- **Base-case inputs** from each company's own guidance and history, with sources: [data/manual/valuation_assumptions.csv](data/manual/valuation_assumptions.csv).
+- **Scenarios:** identical shocks for every company (bear: growth −3 pts, EBITDA margin −3 pts, WACC +1 pt, terminal growth 2.0%; bull: the opposite, 3.0%), so no company gets a softer bear case.
+- **Monte Carlo:** 10,000 DCFs; growth, margin and WACC drawn from a triangle between bear and bull (base most likely), terminal growth uniform 2–3%; fixed seed.
+- **Comparables:** peers' EV/EBITDA and EV/Sales (25th–75th percentile), peers chosen by business similarity ([settings](config/settings.py)).
+
+**The model was corrected twice after sanity checks, and both versions are reported.** The first run (5-year forecast, operating-margin based, balance-sheet working capital) gave **SELL for all three** ([valuation_summary_v1_5yr_ebit.csv](outputs/tables/valuation_summary_v1_5yr_ebit.csv)). Two checks failed:
+1. **Its ending values made no sense:** it valued each company after year 5 at 7.6–12x EBITDA, while every device company in the market trades at 12–43x. The 5-year fade forced 7–13% growers down to near-terminal growth too fast, and holding the *operating* margin flat while acquisition amortisation (non-cash) ran off wrongly shrank cash flow. Fix: 10-year forecast, EBITDA-margin based.
+2. **Its first-year cash flow didn't match reality:** DexCom's modelled free cash flow margin was 9.6% vs 23.1% actually earned. The balance-sheet working-capital measure (receivables + inventory − payables) ignores accrued liabilities such as DexCom's rebates; the cash flow statement shows growth actually *released* cash. Fix: working capital per extra $ of revenue = what growth actually cost over 3 years in the cash flow statement, floored at zero. After the fix, ResMed's modelled cash margin matches its actual exactly (28.8%); the remaining DexCom gap is share-based pay, deliberately treated as a real cost (it dilutes shareholders).
+
+These were changes of method after seeing results, which is exactly what the "fixed in advance" principle guards against, so they are declared here rather than hidden. Neither fix was chosen to reach a conclusion: the DexCom SELL survives the most generous combination tested.
 
 ---
 
@@ -484,6 +526,11 @@ Every change, with the reason. This shows the thinking behind the project.
 | 7 Nov 2026 | Percentile rank = share of the other companies beaten (best = 100, worst = 0); ties share the average | Simple to explain, and one extreme value (Insulet's 133% profit growth) can't dominate |
 | 7 Nov 2026 | Robustness: each weight drawn uniformly within ±10 points, then all rescaled to 100%; 10,000 runs, seed 42 | Matches the plan in section 8; the seed makes the result reproducible |
 | 7 Nov 2026 | Finalists = the 3 highest P(top 3), ties broken by base-case score | Picks companies that are top 3 under almost any reasonable weights, not just mine |
+| 8 Nov 2026 | Valuation method fixed before computing any value: unlevered DCF, CAPM WACC (ERP 5.0%, Blume-adjusted beta, Treasury + 1% cost of debt), terminal growth 2.5%, identical bear/bull shocks for all, triangle-distributed Monte Carlo | Same principle as the screen: the method can't be tuned to reach a favourite answer |
+| 8 Nov 2026 | Base-case growth from company guidance, not from the 3-year history | Globus' 42% history was mostly acquisitions; guidance (~5%) is what the business is expected to do on its own |
+| 8 Nov 2026 | **Method change after results (declared):** 10-year forecast (was 5) and EBITDA-margin based (was operating margin) | The 5-year version implied terminal multiples (7.6–12x) far below any device company's (12–43x), and mishandled non-cash amortisation. First-run results kept and reported |
+| 8 Nov 2026 | **Method change after results (declared):** working capital from the cash flow statement (3-yr cost per extra $ of revenue, floor 0), not the balance sheet | Modelled DexCom cash margin was 9.6% vs 23.1% actual; the balance-sheet measure ignored accrued rebates |
+| 8 Nov 2026 | Share-based pay treated as a real cost (not added back) | It dilutes shareholders. Conservative; tested: adding it back moves the Monte Carlo median to +7.4% (Globus), +4.4% (ResMed), −38% (DexCom) vs price: no decision changes |
 
 ---
 
@@ -497,9 +544,9 @@ Every change, with the reason. This shows the thinking behind the project.
 | 3 | All ~20 companies | 2 | ✅ One table: every company × every metric |
 | 4 | Market risk | 2 | ✅ Volatility, beta, drawdown, momentum, correlations |
 | 5 | Ranking + robustness | 2 | ✅ Ranking, contributions, top-3 probabilities |
-| 6 | DCF + reverse DCF, company 1 | 3 | A working, sanity-checked DCF and the implied growth |
-| 7 | Companies 2–3, comparables, scenarios | 2 | All 3 finalists valued three ways |
-| 8 | Monte Carlo | 1.5 | Value distributions and P(undervalued) |
+| 6 | DCF + reverse DCF, company 1 | 3 | ✅ A working, sanity-checked DCF and the implied growth |
+| 7 | Companies 2–3, comparables, scenarios | 2 | ✅ All 3 finalists valued three ways |
+| 8 | Monte Carlo | 1.5 | ✅ Value distributions and P(undervalued) |
 | 9 | Memo, charts, GitHub | 2.5 | Memo written, repository published |
 
 **Deliberately left out** (optional extras in the brief): portfolio optimisation, backtesting, automatic extraction of annual reports, dashboards.
@@ -530,7 +577,9 @@ healthcare-investment-engine/
 │   ├── session3.py         # Session 3 pipeline (all companies): python -m src.session3
 │   ├── session4.py         # correlations: python -m src.session4
 │   ├── scoring.py          # percentile ranks, group scores, weights, robustness simulation
-│   └── session5.py         # ranking, robustness, finalists, chart: python -m src.session5
+│   ├── session5.py         # ranking, robustness, finalists, chart: python -m src.session5
+│   ├── valuation.py        # WACC, DCF, reverse DCF, comparables, Monte Carlo, decision rule
+│   └── session6.py         # Sessions 6-8: value the finalists: python -m src.session6
 ├── notebooks/         # exploring and checking one company step by step
 ├── outputs/
 │   ├── charts/        # final charts

@@ -108,6 +108,35 @@ WEIGHT_SPREAD = 0.10           # each group weight varies +/- 10 points (Quality
 N_FINALISTS = 3
 
 # ---------------------------------------------------------------------------
+# Valuation method (README section 9). Fixed on 7 Nov 2026 BEFORE any value was computed.
+# Company-specific base assumptions (near-term growth, target margin) and their
+# sources are in data/manual/valuation_assumptions.csv.
+# ---------------------------------------------------------------------------
+FORECAST_YEARS = 10           # changed from 5 on 7 Nov 2026 after the model sanity check (see README):
+                              # 5 years forced 7-13% growers down to ~terminal growth too fast
+TERMINAL_GROWTH = 0.025        # long-run growth after year 5: below the 10-year Treasury yield (4.9%)
+EQUITY_RISK_PREMIUM = 0.050    # extra return investors demand for owning shares (typical range 4-6%)
+CREDIT_SPREAD = 0.010          # pre-tax cost of debt = 10-year Treasury + 1% (large, investment-grade-like companies)
+BETA_BLUME_WEIGHT = 0.67       # adjusted beta = 0.67 x measured beta + 0.33 x 1 (raw 3-year betas are noisy)
+
+# Scenarios: the same shocks for every company, so no company gets a softer bear case
+SCENARIOS = {
+    #        year-1 growth     target EBITDA margin  WACC   terminal growth
+    "bear": {"g1": -0.03,       "margin": -0.03, "wacc": +0.01, "g_term": 0.020},
+    "base": {"g1":  0.00,       "margin":  0.00, "wacc":  0.00, "g_term": TERMINAL_GROWTH},
+    "bull": {"g1": +0.03,       "margin": +0.03, "wacc": -0.01, "g_term": 0.030},
+}
+# Monte Carlo: growth, margin and WACC drawn from a triangle between bear and bull (most likely = base);
+# terminal growth drawn uniformly between the bear and bull values.
+
+# Trading comparables: 4-5 genuinely similar companies from the universe (a judgement call)
+PEERS = {
+    "GMED": ["SYK", "ZBH", "MDT", "ISRG"],          # spine/orthopaedic implants and surgical robotics
+    "RMD":  ["DXCM", "PODD", "ABT", "MDT", "EW"],   # chronic-disease devices with recurring consumables
+    "DXCM": ["PODD", "ABT", "RMD", "MDT", "EW"],    # diabetes (Insulet, Abbott's Libre, Medtronic) + home-use chronic care
+}
+
+# ---------------------------------------------------------------------------
 # Decision rule (README section 9). Fixed before seeing any results.
 # ---------------------------------------------------------------------------
 BUY_MIN_UPSIDE = 0.15          # median value at least 15% above price...
