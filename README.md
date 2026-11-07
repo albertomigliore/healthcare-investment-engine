@@ -1,7 +1,24 @@
 # MedTech Investment Research Engine
 
-> **Status:** Sessions 1–8 of 9 complete. **Verdict: Globus Medical HOLD, ResMed HOLD, DexCom SELL.** The two top-ranked bargains turn out to be fairly priced, and the market is paying for growth at DexCom that its own guidance doesn't support. Memo in progress. See [Progress and findings](#progress-and-findings).
-> This page is the plan: every choice is written down *before* looking at results, so the conclusion can't be bent to fit a favourite company.
+## At a glance
+
+**Question:** among 17 large US medical-device companies, which offer the best mix of quality, growth and value, and are they worth buying at today's prices (6 Nov 2026)?
+
+**Answer:** a 12-metric screen, robust to 10,000 random weightings, picked **Globus Medical, ResMed and DexCom**. Valuing them (DCF, reverse DCF, comparables, 10,000-run Monte Carlo) gives **Globus HOLD, ResMed HOLD, DexCom SELL**.
+- Globus and ResMed are priced for almost exactly the growth they guide to (implied 5.1% and 7.1% vs ~5% and ~7%).
+- DexCom's price needs ~28% growth next year vs 12–13% guided.
+
+→ **[Investment memo](reports/investment_memo.md)** · [Ranking chart](outputs/charts/02_ranking.png) · [Valuation chart](outputs/charts/03_valuation_ranges.png)
+
+**Why the numbers can be trusted**
+- Every rule was fixed before seeing results, and the decision log (section 12) records every choice, including two declared method changes.
+- Every company's revenue and operating profit were cross-checked against its own SEC 10-K (34/34 match).
+- 12 data problems were found and fixed: an intraday price disguised as a close, restated revenue, a spin-off recorded as a stock split, a pending takeover pinning a share price, and more.
+- 79 automatic tests.
+
+**Run it:** `pip install -r requirements.txt`, then `python -m src.session3` (data and metrics), `python -m src.session5` (ranking), `python -m src.session6` (valuation), `python -m pytest` (tests). Python · pandas · NumPy · SciPy · matplotlib · yfinance · SEC XBRL API · FRED.
+
+> *A learning project, not investment advice.* Below: the results session by session, then the original plan, which was written before any data was looked at.
 
 ---
 
