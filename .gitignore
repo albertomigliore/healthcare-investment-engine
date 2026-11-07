@@ -4,3 +4,6 @@ __pycache__/
 .ipynb_checkpoints/
 .vscode/
 .pytest_cache/
+
+# Personal study notes (not part of the published project)
+study/
