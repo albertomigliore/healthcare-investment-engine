@@ -1,7 +1,99 @@
 # MedTech Investment Research Engine
 
-> **Status:** Session 0 – project specification. No code yet.
+> **Status:** Sessions 1–2 of 9 complete: data pipeline built and checked, and all 12 screening metrics calculated and hand-checked on the test company (Stryker). See [Progress and findings](#progress-and-findings).
 > This page is the plan: every choice is written down *before* looking at results, so the conclusion can't be bent to fit a favourite company.
+
+---
+
+## Progress and findings
+
+### Session 1: Stryker data, loaded and checked ✅
+
+![Stryker vs the market and its sector](outputs/charts/01_stryker_vs_benchmarks.png)
+
+**Reproduce it:** `python -m src.session1` (downloads everything, runs the checks, redraws the chart).
+
+**1. Yahoo Finance vs Stryker's official 10-K (FY2025, $ millions)**
+
+| Item | Yahoo | 10-K | Difference | Match |
+|---|---|---|---|---|
+| Revenue | 25,116 | 25,116 | 0.0% | ✅ |
+| Operating income: Yahoo's plain "Operating Income" | 5,059 | 4,889 | +3.5% | ❌ (adds back one-off charges; see finding 2) |
+| Operating income: Yahoo's "As Reported" line | 4,889 | 4,889 | 0.0% | ✅ (used from Session 2 on) |
+| Net income | 3,246 | 3,246 | 0.0% | ✅ |
+| Operating cash flow | 5,044 | 5,044 | 0.0% | ✅ |
+| Capital expenditure | −761 | −761 | 0.0% | ✅ |
+| Total debt | 15,859 | 15,859 | 0.0% | ✅ |
+| Cash | 4,011 | 4,011 | 0.0% | ✅ |
+| Shares outstanding (m) | 382.5 | 382.7 | −0.1% | ✅ (cover-page count is dated one month later) |
+
+Source: Stryker 10-K, accession 0000310764-26-000010, filed 11 Feb 2026, via the SEC's XBRL data. Stored with its source in [data/manual/SYK_10K_FY2025.csv](data/manual/SYK_10K_FY2025.csv).
+
+**2. First numbers for Stryker**
+
+| | Stryker | S&P 500 | Device sector (IHI) |
+|---|---|---|---|
+| 3-year total return | 21.2% | 75.0% | 23.9% |
+| Return per year | 6.6% | 20.5% | 7.4% |
+| Volatility (yearly) | 25.1% | 15.4% | 18.7% |
+| Maximum drawdown | −32.5% (Jul 2025 → Sep 2026) | −18.8% | −26.6% |
+
+| Business (FY2025) | |
+|---|---|
+| Revenue | $25.1bn |
+| Revenue growth, 3-yr CAGR (2022–25) | 10.8% a year |
+| Free cash flow | $4.3bn |
+| FCF margin | 17.1% |
+
+*Prices to the close of 6 Nov 2026.*
+
+**3. What this tells us so far**
+- **The business grew faster than the share price.** Revenue compounded at 10.8% a year, but the shares returned only 6.6% a year, so the market now pays less for each dollar of sales than it did 3 years ago. Whether that makes Stryker cheap or the old price too high is exactly what the valuation stage has to answer.
+- **The whole sector lagged the market.** $100 in device stocks became $124; $100 in the S&P 500 became $175. Stryker's story is mostly a sector story, which is why the screen measures momentum *relative to IHI*, not just in absolute terms.
+- **Stryker was bumpier than its sector** (25% vs 19% volatility) and had a deeper worst fall (−32% vs −27%).
+
+**4. Data-quality findings** (each one changed the code)
+
+| # | Finding | How it was caught | What was done |
+|---|---|---|---|
+| 1 | A download during US trading hours returns a **mid-day price disguised as a close**. | The last row had a quarter of the normal trading volume; the download was at 12:04 New York time. | `drop_unfinished_day()` now removes any unfinished day automatically and warns. |
+| 2 | Yahoo's plain **"Operating Income" is 3.5% higher** than the 10-K. In Session 2 the cause was found: Yahoo adds back "special charges" ($170m in 2025, $977m in 2024). Stryker has had these "one-offs" every year from 2022 to 2025. | Line-by-line check against the 10-K, then a search of Yahoo's other income-statement lines. | Yahoo's **"Total Operating Income As Reported"** line matches the 10-K exactly, and is now used everywhere (decision log). |
+| 3 | Yahoo's **2024 EBITDA looked too low**: only $0.3bn above *adjusted* operating income, when 2024 D&A was $1.05bn. Explained in Session 2: Yahoo's EBITDA is *after* the $977m special charge of 2024, while its "Operating Income" is *before* it. The two lines use different definitions. | Sanity check: EBITDA must be well above operating income. | EBITDA is built ourselves as as-reported operating income + D&A, so both use one definition. |
+| 4 | Yahoo's **oldest financial year is almost empty** (45 of 46 lines missing). | Counted missing values per column. | Mostly-empty years are dropped; 4 usable years (2022–25) remain, as the plan needs. |
+
+
+### Session 2: the 12 screening metrics for Stryker, hand-checked ✅
+
+**Reproduce it:** `python -m src.session2`. Every formula with the real numbers plugged in: [outputs/tables/SYK_metrics_workings.md](outputs/tables/SYK_metrics_workings.md).
+
+| Group | Metric | Workings ($ millions) | Stryker |
+|---|---|---|---|
+| Quality | ROIC | 4,889 × (1 − 19.5%) ÷ (15,859 debt + 22,420 equity − 4,011 cash) | **11.5%** |
+| Quality | FCF margin | (5,044 operating cash flow − 761 capex) ÷ 25,116 revenue | **17.1%** |
+| Quality | Net debt / EBITDA | (15,859 − 4,011) ÷ (4,889 operating income + 1,193 D&A) | **1.95x** |
+| Growth | Revenue growth (3-yr) | (25,116 ÷ 18,449)^(1/3) − 1 | **10.8%** |
+| Growth | Operating profit growth (3-yr) | (4,889 ÷ 2,841)^(1/3) − 1 | **19.8%** |
+| Value | EV / EBITDA | (124,645 market cap + 15,859 − 4,011) ÷ 6,082 | **22.4x** |
+| Value | FCF yield | 4,283 ÷ 124,645 ($325.87 × 382.5m shares) | **3.4%** |
+| Momentum | 12-1 month return | $278.20 (6 Oct 2026) ÷ $349.93 (6 Nov 2025) − 1 | **−20.5%** |
+| Momentum | Return vs sector (12m) | SYK −6.9% minus IHI −4.6% | **−2.2%** |
+| Risk | Volatility | 1.58% daily std. dev. × √252 (753 days) | **25.1%** |
+| Risk | Beta | weekly returns vs S&P 500 (156 weeks) | **0.53** |
+| Risk | Max drawdown | $268.90 (24 Sep 2026) ÷ $398.20 (25 Jul 2025) − 1 | **−32.5%** |
+| *Reported* | Sharpe ratio | (6.6% yearly return − 4.3% avg. T-bill) ÷ 25.1% | *0.09* |
+
+Price: close of 6 Nov 2026. Financials: FY2025. Tax rate: 3-year pooled effective rate. Risk-free rates from FRED ([outputs/tables/risk_free_rates.csv](outputs/tables/risk_free_rates.csv)): 3-month T-bill averaged 4.33% over the 3 years; 10-year Treasury 4.90% (4 Nov 2026, the latest published before the valuation date).
+
+**How the numbers were checked**
+- **By hand:** every row above can be recomputed with a calculator from the workings column.
+- **Independently:** volatility, beta (as a regression slope), drawdown and both momentum figures were recomputed straight from the raw CSV files with different code. All matched.
+- **Automatically:** 34 tests check every formula on made-up examples with known answers, including edge cases (losses, negative EBITDA, missing data, weekends).
+
+**What Stryker's numbers say** (on their own they mean little; Session 3 ranks them against 19 peers)
+- **Margins are expanding.** Operating profit grew almost twice as fast as revenue (19.8% vs 10.8% a year): the operating margin went from 15.4% to 19.5%. Part of this is a low 2022 base (that year had $270m of special charges).
+- **Investors pay for growth, not current cash.** The FCF yield (3.4%) is **below** the 10-year Treasury yield (4.9%): buying Stryker today only makes sense if its cash flows keep growing. The reverse DCF (Session 6) will put a number on how much growth the price assumes.
+- **Low beta, high volatility.** Stryker moves only about half as much as the market (beta 0.53), yet its price swings more than the market's (25% vs 15% volatility). So most of its risk is **company-specific**, not market-driven, and in a diversified portfolio much of that risk would cancel out.
+- **The trend is negative.** Down 20.5% on the 12-1 measure and slightly behind the sector over 12 months: momentum will count against it in the screen.
 
 ---
 
@@ -255,6 +347,15 @@ Every change, with the reason. This shows the thinking behind the project.
 | 6 Nov 2026 | EV/EBITDA and FCF yield instead of P/E | Earnings per share in MedTech are distorted by acquisition-related accounting charges |
 | 6 Nov 2026 | Stryker as the test company for the pipeline | Large, clear business, carries debt (tests the debt-to-equity step); **not** a pick |
 | 6 Nov 2026 | Excluded J&J, IDEXX, Solventum, Smith & Nephew | Mostly pharma / animal market / under 3 years of history / not a US company |
+| 6 Nov 2026 | Drop any trading day that hasn't finished yet | A download at 12:04 New York time returned a mid-day price as if it were the close |
+| 6 Nov 2026 | ~~Screen uses Yahoo figures; valuation uses 10-K figures~~ **Replaced (Session 2):** operating income = Yahoo's "As Reported" line everywhere | The 3.5% gap was Yahoo adding back "one-off" charges. The as-reported figure matches the 10-K, so it is verifiable, and it doesn't accept the company's own view of what counts as a one-off. Stryker had such charges in every year from 2022 to 2025 |
+| 6 Nov 2026 | Calculate EBITDA ourselves (as-reported operating income + D&A) instead of using Yahoo's | Yahoo's EBITDA and "Operating Income" treat one-off charges differently, so mixing them is inconsistent |
+| 6 Nov 2026 | Official figures come from the SEC's XBRL data, with the filing's accession number recorded | Same numbers as the 10-K document, but machine-readable and traceable to the exact filing |
+| 6 Nov 2026 | All settings live in `config/settings.py`; formulas in `src/metrics.py` with automatic tests | One place to change a choice; every formula checked on examples with known answers |
+| 6 Nov 2026 | ROIC tax rate = total tax ÷ total pre-tax profit over 3 years (capped at 35%; 21% if pre-tax profit is negative) | One year's rate can be distorted (Stryker: 14% in 2024, 28% in 2025); pooling smooths that out |
+| 6 Nov 2026 | Risk-free rates from FRED (DTB3, DGS10); Sharpe uses the 3-year *average* T-bill rate | FRED republishes the US Treasury's daily rates as a free, downloadable series. A 3-year return should be compared with the rate available over those same 3 years |
+| 6 Nov 2026 | Market cap = valuation-date price × shares from the latest balance sheet | The same, verifiable share count for every company (it matched the 10-K cover page within 0.1% for Stryker) |
+| 6 Nov 2026 | Max drawdown stored as a negative number, with "higher is better" | −10% is a smaller fall than −30%, so scoring must rank closer-to-zero higher |
 
 ---
 
@@ -263,8 +364,8 @@ Every change, with the reason. This shows the thinking behind the project.
 | # | Session | Hours | Done when |
 |---|---|---|---|
 | 0 | Specification (this page) | 1 | ✅ This README |
-| 1 | Setup + Stryker data | 2 | Stryker's prices and financials loaded and checked against its annual report |
-| 2 | Stryker metrics | 2 | All 12 metrics for Stryker, checked by hand |
+| 1 | Setup + Stryker data | 2 | ✅ Stryker's prices and financials loaded and checked against its annual report |
+| 2 | Stryker metrics | 2 | ✅ All 12 metrics for Stryker, checked by hand |
 | 3 | All ~20 companies | 2 | One table: every company × every metric |
 | 4 | Market risk | 2 | Volatility, beta, drawdown, momentum, correlations |
 | 5 | Ranking + robustness | 2 | Ranking, contributions, top-3 probabilities |
@@ -281,15 +382,23 @@ Every change, with the reason. This shows the thinking behind the project.
 
 ```
 healthcare-investment-engine/
-├── config/            # settings: tickers, weights, dates, assumptions
+├── config/
+│   └── settings.py    # every choice in one place: tickers, dates, weights, decision rule
 ├── data/
 │   ├── raw/           # downloads exactly as received (never edited)
+│   ├── manual/        # figures taken from official filings, with their source
 │   └── processed/     # cleaned, checked data
-├── src/               # the Python code
+├── src/
+│   ├── data.py        # downloading, saving and loading data
+│   ├── fundamentals.py     # picks the needed lines out of the statements, records the label used
+│   ├── metrics.py          # the formulas, one small function each
+│   ├── company_metrics.py  # the 12 metrics for one company, with workings
+│   ├── session1.py         # Session 1 pipeline: python -m src.session1
+│   └── session2.py         # Session 2 pipeline: python -m src.session2
 ├── notebooks/         # exploring and checking one company step by step
 ├── outputs/
 │   ├── charts/        # final charts
 │   └── tables/        # ranking, valuations, simulations
 ├── reports/           # the investment memo
-└── tests/             # automatic checks on the formulas
+└── tests/             # automatic checks on the formulas: python -m pytest
 ```

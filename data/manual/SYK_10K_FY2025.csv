@@ -1,0 +1,9 @@
+item,yahoo_statement,yahoo_label,value_musd,sec_xbrl_tag,source,note
+Revenue,income,Total Revenue,25116,Revenues,"Stryker 10-K FY2025, accession 0000310764-26-000010, filed 2026-02-11",
+Operating income,income,Total Operating Income As Reported,4889,OperatingIncomeLoss,"Stryker 10-K FY2025, accession 0000310764-26-000010, filed 2026-02-11",Yahoo's plain "Operating Income" (5059) adds back 170 of special charges; the "As Reported" line matches the 10-K
+Net income,income,Net Income,3246,NetIncomeLoss,"Stryker 10-K FY2025, accession 0000310764-26-000010, filed 2026-02-11",
+Operating cash flow,cashflow,Operating Cash Flow,5044,NetCashProvidedByUsedInOperatingActivities,"Stryker 10-K FY2025, accession 0000310764-26-000010, filed 2026-02-11",
+Capital expenditure,cashflow,Capital Expenditure,-761,PaymentsToAcquirePropertyPlantAndEquipment,"Stryker 10-K FY2025, accession 0000310764-26-000010, filed 2026-02-11",10-K reports 761 as a payment; stored negative (cash out) to match Yahoo's sign
+Total debt,balance,Total Debt,15859,DebtCurrent + LongTermDebtNoncurrent,"Stryker 10-K FY2025, accession 0000310764-26-000010, filed 2026-02-11",1000 current + 14859 long-term
+Cash,balance,Cash And Cash Equivalents,4011,CashAndCashEquivalentsAtCarryingValue,"Stryker 10-K FY2025, accession 0000310764-26-000010, filed 2026-02-11",
+Shares outstanding (m),balance,Ordinary Shares Number,382.7,dei:EntityCommonStockSharesOutstanding,"Stryker 10-K FY2025, accession 0000310764-26-000010, filed 2026-02-11",Cover page count dated 2026-01-31 (one month after the balance sheet)
