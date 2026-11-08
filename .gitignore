@@ -7,3 +7,10 @@ __pycache__/
 
 # Personal study notes (not part of the published project)
 study/
+
+# Yahoo Finance downloads: kept locally, not redistributed (Yahoo's terms). python -m src.run_all downloads them.
+data/raw/*_prices_downloaded_*
+data/raw/*_income_downloaded_*
+data/raw/*_balance_downloaded_*
+data/raw/*_cashflow_downloaded_*
+data/raw/quote_closes_downloaded_*

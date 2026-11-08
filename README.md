@@ -358,7 +358,7 @@ The ranking only *suggests* candidates. The valuation decides.
 | Interest rates | US Treasury | Risk-free rate |
 
 **Data rules:**
-- Raw downloads are saved untouched in `data/raw/`, with the **date and source** recorded.
+- Raw downloads are saved untouched in `data/raw/`, with the **date and source** recorded. *Yahoo Finance downloads are not published in this repository, because Yahoo's terms restrict redistribution; `python -m src.run_all` downloads them. The SEC filings data and FRED interest rates, which are public, are included.*
 - A missing number stays missing. It is **never replaced with zero**.
 - Units (thousands vs millions) and fiscal years are checked. Some companies' years don't end in December: Medtronic's ends in April.
 - If a number could change the final decision, it's checked against the annual report.
