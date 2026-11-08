@@ -8,7 +8,7 @@
 - Globus and ResMed are priced for almost exactly the growth they guide to (implied 5.1% and 7.1% vs ~5% and ~7%).
 - DexCom's price needs ~28% growth next year vs 12–13% guided.
 
-→ **[Investment memo](reports/investment_memo.md)** · **Interactive report with Monte Carlo simulation: open [app/index.html](app/index.html) in a browser** · [Ranking chart](outputs/charts/02_ranking.png) · [Valuation chart](outputs/charts/03_valuation_ranges.png)
+→ **[Investment memo](reports/investment_memo.md)** · **Interactive report with Monte Carlo simulation: [albertomigliore.github.io/healthcare-investment-engine](https://albertomigliore.github.io/healthcare-investment-engine/)** (or open [app/index.html](app/index.html) locally) · [Ranking chart](outputs/charts/02_ranking.png) · [Valuation chart](outputs/charts/03_valuation_ranges.png)
 
 **The interactive report** ([app/index.html](app/index.html)): the whole project as one page in six sections (approach, data, screen, valuation, Monte Carlo, conclusions), with numbered figures and tables. Every company in the ranking can be expanded to show its 12 metrics. For each finalist, the Monte Carlo section lets you change the assumptions and re-run 10,000 simulations, with the distribution, its convergence and a sensitivity chart explained in text. The page uses a JavaScript port of the Python model, tested to match it to the cent.
 
